@@ -64,6 +64,7 @@ Run the CLI for your **host**, then supply the **target** SDK's `runtime/`:
 ./divinepack build --config installer.json --runtime win-arm64 --runtime-dir ../sdk-win-arm64/runtime --output output-win-arm64
 ```
 
+Use a 0.2+ target SDK/runtime with the 0.2 builder; runtime format 2 prevents mixing an old reader with new packages.
 Do not execute a different architecture's CLI on your host. The GitHub Action uses matching native runners.
 Do not place output inside the application or SDK source directories.
 

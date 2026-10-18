@@ -25,7 +25,7 @@ foreach ($item in $symbols | Sort-Object { $_.FullName.Length } -Descending) {
  if (Test-Path -LiteralPath $item.FullName) { Remove-Item -LiteralPath $item.FullName -Recurse -Force }
 }
 $entryPoint = if ($Runtime.StartsWith('win-')) { 'DivineLabs.Installer.exe' } else { 'DivineLabs.Installer' }
-@{formatVersion=1;runtime=$Runtime;entryPoint=$entryPoint;nativeAot=$true;template='divinelabs-classic'} | ConvertTo-Json | Set-Content -LiteralPath "$runtimeOutput/runtime.json" -Encoding utf8
+@{formatVersion=2;runtime=$Runtime;entryPoint=$entryPoint;nativeAot=$true;template='divinelabs-classic'} | ConvertTo-Json | Set-Content -LiteralPath "$runtimeOutput/runtime.json" -Encoding utf8
 Copy-Item -LiteralPath "$root/LICENSE","$root/NOTICE.md" -Destination $Output
 Copy-Item -LiteralPath "$root/schemas" -Destination $Output -Recurse
 Copy-Item -LiteralPath "$root/assets/licenses" -Destination $Output -Recurse

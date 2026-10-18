@@ -83,7 +83,7 @@ internal static class Program {
         runtimeDirectory = Path.GetFullPath(runtimeDirectory); Paths.NoLinks(runtimeDirectory);
         using var stream = File.OpenRead(Path.Combine(runtimeDirectory, "runtime.json"));
         var runtime = JsonSerializer.Deserialize(stream, InstallerJson.Default.RuntimeInfo) ?? throw new InvalidDataException("Missing runtime metadata.");
-        if (runtime.FormatVersion != 1 || runtime.Runtime != rid || !runtime.NativeAot) throw new InvalidDataException("Use a matching prebuilt Native AOT runtime.");
+        if (runtime.FormatVersion != 2 || runtime.Runtime != rid || !runtime.NativeAot) throw new InvalidDataException("Use a matching 0.2+ Native AOT runtime (runtime format 2).");
         Paths.Relative(runtime.EntryPoint);
         if (!File.Exists(Paths.Inside(runtimeDirectory, runtime.EntryPoint))) throw new IOException("Runtime executable is missing.");
         using (var configInput = File.OpenRead(config)) {

@@ -35,7 +35,7 @@ Classic itself accepts packages declaring Classic.
 
 Templates are compiled libraries and native runtimes, not dynamically loaded DLL plugins.
 To provide another template, build a host using Core/Components, publish a matching native runtime and
-set its `runtime.json.template`. Keep the `formatVersion`, `runtime`, `entryPoint` and `nativeAot` runtime contract.
+set its `runtime.json.template`. Use `formatVersion: 2`, plus `runtime`, `entryPoint` and `nativeAot` metadata.
 The stock publish script produces Classic; arbitrary template projects are not automatically published.
 
 ## Host policy
@@ -50,7 +50,8 @@ shipping a Native AOT host removes the destination machine's .NET runtime requir
 
 ## Compatibility
 
-0.2 reads 0.1 packages/configs/receipts with the default Classic identity. Newly written metadata includes
+0.2 reads 0.1 packages/configs/receipts with the default Classic identity. The 0.2 bundle builder requires
+runtime format 2; old 0.1 runtimes are rejected before bundle output because they cannot read new package metadata. Newly written metadata includes
 `template`; strict 0.1 readers cannot read it. Keep the new maintenance runtime when updating a standalone
 installation; downgrade to the old reader is not supported. Do not switch a standalone installation into
 launcher-owned maintenance without an explicit integration/runtime migration.
