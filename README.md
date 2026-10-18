@@ -8,7 +8,7 @@
 [![Version](https://img.shields.io/github/v/release/TheDivineLabs/DivineLabs_Installer?include_prereleases&color=6658e8)](https://github.com/TheDivineLabs/DivineLabs_Installer/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-6658e8)](LICENSE)
 
-[Website](https://thedivinelabs.github.io/installer/) · [Download SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Configuration](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Issues](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
+[Website](https://thedivinelabs.github.io/installer/) · [Download SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.1) · [Configuration](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Issues](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
 
 **English** · [Русский](README.ru.md) · [Deutsch](docs/i18n/README.de.md) · [Español](docs/i18n/README.es.md) · [简体中文](docs/i18n/README.zh-CN.md)
 </div>
@@ -33,7 +33,7 @@ No game artwork is bundled.
 - **Interface:** English/Russian, light/dark themes, matching setup and uninstall pages.
 
 Documentation is available in five languages; the interface currently supports **English and Russian**.
-This is an early **0.2.0 preview**. See delivery limits below before adopting it.
+This is an early **0.2.1 preview**. See delivery limits below before adopting it.
 
 ## Choose your integration
 
@@ -45,7 +45,7 @@ This is an early **0.2.0 preview**. See delivery limits below before adopting it
 | Use the current design in your host | [DivineLabs Classic template](examples/classic-host/) |
 
 Core, Platforms, Components and Templates.Classic are separate packable libraries.
-[Architecture](docs/architecture.md) · [Download .nupkg libraries](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0)
+[Architecture](docs/architecture.md) · [Download .nupkg libraries](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.1)
 
 ## Download
 
@@ -53,11 +53,11 @@ Choose the SDK for the computer running `divinepack`. Extract it; keep `runtime/
 
 | Platform | x64 | ARM64 |
 |---|---|---|
-| Windows | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-win-x64.zip) | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-win-arm64.zip) |
-| macOS | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-osx-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-osx-arm64.tar.gz) |
-| Linux | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-linux-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-linux-arm64.tar.gz) |
+| Windows | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.1/DivineLabs-Installer-win-x64.zip) | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.1/DivineLabs-Installer-win-arm64.zip) |
+| macOS | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.1/DivineLabs-Installer-osx-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.1/DivineLabs-Installer-osx-arm64.tar.gz) |
+| Linux | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.1/DivineLabs-Installer-linux-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.1/DivineLabs-Installer-linux-arm64.tar.gz) |
 
-[Release notes and SHA256SUMS.txt](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0).
+[Release notes and SHA256SUMS.txt](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.1).
 SDK archives contain the builder; generated installer archives are separate output.
 
 ## First installer in three commands
@@ -82,7 +82,7 @@ on macOS choose `osx-arm64` or `osx-x64`. Then replace demo files in `applicatio
   with:
     config: installer.json
     runtime: win-x64
-    sdk-version: v0.2.0
+    sdk-version: v0.2.1
 - uses: actions/upload-artifact@v4
   with:
     name: installer

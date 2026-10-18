@@ -6,7 +6,7 @@
 
 面向 Windows、macOS 和 Linux 的原生安装工具，支持 x64 和 ARM64。基于 Avalonia 和 .NET Native AOT，采用 MIT 许可证。
 
-[SDK 0.2.0 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
+[SDK 0.2.1 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.1) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
 
 ![DivineLabs Installer](../images/welcome.png)
 

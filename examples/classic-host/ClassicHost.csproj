@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>WinExe</OutputType><PublishAot>true</PublishAot><InstallerPackageVersion>0.2.0</InstallerPackageVersion></PropertyGroup>
+  <PropertyGroup><OutputType>WinExe</OutputType><PublishAot>true</PublishAot><InstallerPackageVersion>0.2.1</InstallerPackageVersion></PropertyGroup>
   <PropertyGroup Condition="'$(UseInstallerPackages)' == 'true'"><NuGetLockFilePath>packages.feed.lock.json</NuGetLockFilePath></PropertyGroup>
   <ItemGroup><PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)"/><PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)"/></ItemGroup>
   <ItemGroup Condition="'$(UseInstallerPackages)' != 'true'"><ProjectReference Include="../../src/DivineLabs.Installer.Platforms/DivineLabs.Installer.Platforms.csproj"/><ProjectReference Include="../../src/DivineLabs.Installer.Templates.Classic/DivineLabs.Installer.Templates.Classic.csproj"/></ItemGroup>

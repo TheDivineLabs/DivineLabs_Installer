@@ -23,8 +23,15 @@ function Run([string]$Executable,[string[]]$Arguments){
 $sample=Join-Path $Work 'sample'
 Run $cli @('init','--dir',$sample)
 Run $cli @('validate','--config',"$sample/installer.json")
+# The build uses omitted defaults, not init's fully populated JSON. This catches AOT reader regressions.
+$full=Get-Content -LiteralPath "$sample/installer.json" -Raw | ConvertFrom-Json
+$app=$full.applications.PSObject.Properties[$rid].Value
+$minimal=@{id=$full.id;name=$full.name;publisher=$full.publisher;version=$full.version;branding=@{};applications=@{}}
+$minimal.applications[$rid]=@{source=$app.source;entryPoint=$app.entryPoint}
+$minimal | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$sample/minimal.json" -Encoding utf8
+Run $cli @('validate','--config',"$sample/minimal.json")
 $built=Join-Path $Work 'built'
-Run $cli @('build','--config',"$sample/installer.json",'--runtime',$rid,'--output',$built)
+Run $cli @('build','--config',"$sample/minimal.json",'--runtime',$rid,'--output',$built)
 $runtimeName="DivineLabs.Installer$extension"
 $gui=Get-ChildItem -LiteralPath $built -Recurse -File | Where-Object Name -eq $runtimeName | Select-Object -First 1
 if(-not $gui){throw 'Native installer is missing.'}
@@ -35,6 +42,10 @@ $receiptFile=Join-Path $target '.divinelabs-installer/receipt.json'
 if(-not(Test-Path -LiteralPath $receiptFile)){throw 'Installer did not write receipt.'}
 $receipt=Get-Content -LiteralPath $receiptFile -Raw | ConvertFrom-Json
 if(-not(Test-Path -LiteralPath (Join-Path $target $receipt.entryPoint))){throw 'Installed application is missing.'}
+if($receipt.product.template -ne 'divinelabs-classic' -or $receipt.product.schemaVersion -ne 1 -or $receipt.product.language -ne 'en' -or
+   -not $receipt.product.branding.showFrameworkBranding -or $receipt.product.branding.accent -ne '#6658E8' -or
+   ($receipt.product.dataDirectories -join ',') -ne 'data,logs'){throw 'Omitted configuration defaults were not preserved.'}
+
 New-Item -ItemType Directory -Force "$target/data" | Out-Null
 [IO.File]::WriteAllText("$target/data/settings.json",'retained sentinel')
 $uninstaller=Join-Path $target ".divinelabs-installer/runtime/$runtimeName"
@@ -44,5 +55,5 @@ while((Test-Path -LiteralPath $receiptFile)-and (Get-Date)-lt $deadline){Start-S
 if(Test-Path -LiteralPath $receiptFile){throw 'Installed native uninstaller did not complete.'}
 if(Test-Path -LiteralPath (Join-Path $target $receipt.entryPoint)){throw 'Uninstaller left owned app executable.'}
 if([IO.File]::ReadAllText("$target/data/settings.json") -ne 'retained sentinel'){throw 'Uninstaller lost user settings.'}
-@{success=$true;runtime=$rid;nativeAot=$true;configBuild=$true;installedUninstaller=$true;settingsPreserved=$true;integrations=$false;applicationLaunched=$false} | ConvertTo-Json | Set-Content -LiteralPath "$Work/result.json" -Encoding utf8
+@{success=$true;runtime=$rid;nativeAot=$true;configBuild=$true;configDefaults=$true;installedUninstaller=$true;settingsPreserved=$true;integrations=$false;applicationLaunched=$false} | ConvertTo-Json | Set-Content -LiteralPath "$Work/result.json" -Encoding utf8
 Write-Output "Native smoke passed: $rid; $Work/result.json"

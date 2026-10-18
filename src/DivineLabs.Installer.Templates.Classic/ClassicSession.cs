@@ -34,7 +34,7 @@ public sealed class ClassicSession : IDisposable {
         return new(receipt.Product, null, targetDirectory, true, engine, platform, null);
     }
     public static ClassicSession Preview(IInstallerEngine engine, IPlatformServices platform) => new(new() {
-        Id = "org.divinelabs.example", Name = "DivineLabs Installer", Publisher = "DivineLabs", Version = "0.2.0", Language = "en",
+        Id = "org.divinelabs.example", Name = "DivineLabs Installer", Publisher = "DivineLabs", Version = "0.2.1", Language = "en",
         Description = "Your application. One configuration. Every desktop.", Links = [new("GitHub", "https://github.com/TheDivineLabs/DivineLabs_Installer"), new("Documentation", "https://github.com/TheDivineLabs/DivineLabs_Installer#readme")]
     }, null, null, false, engine, platform, null, new());
     public IEnumerable<(string Folder, string Version)> FindInstallations() =>

@@ -16,7 +16,7 @@ publisher trust comes from the selected repository/release.
     config: installer.json
     runtime: win-x64
     output: installer-output
-    sdk-version: v0.2.0
+    sdk-version: v0.2.1
 - uses: actions/upload-artifact@v4
   with:
     name: my-app-installer
@@ -32,7 +32,7 @@ The action produces an artifact, without publishing a release or running your ap
 | `config` | Required | Config relative to the repository workspace. |
 | `runtime` | Required | Supported RID; must match runner OS/CPU. |
 | `output` | `installer-output` | New/empty directory; occupied directories fail without replacement. |
-| `sdk-version` | `v0.2.0` | Published SDK release tag, including `v`. |
+| `sdk-version` | `v0.2.1` | Published SDK release tag, including `v`. |
 
 Output `archive` is the absolute installer ZIP/TAR.GZ path. Upload with `upload-artifact`.
 Use `permissions: contents: read`; no write token or publishing secret is required.

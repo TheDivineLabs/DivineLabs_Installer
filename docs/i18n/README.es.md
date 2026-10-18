@@ -6,7 +6,7 @@
 
 Instaladores nativos para Windows, macOS y Linux, con x64 y ARM64. Avalonia + .NET Native AOT y licencia MIT.
 
-[SDK 0.2.0 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
+[SDK 0.2.1 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.1) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
 
 ![DivineLabs Installer](../images/welcome.png)
 

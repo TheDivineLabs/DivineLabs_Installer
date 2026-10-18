@@ -24,7 +24,30 @@ string Make(string version, params (string Name, string Content)[] files) {
 }
 void Check(bool ok, string name) { if (!ok) throw new Exception("FAIL: " + name); passed++; Console.WriteLine("PASS: " + name); }
 void Refused(Action action, string name) { bool refused = false; try { action(); } catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException) { refused = true; } Check(refused, name); }
+var minimalJson = """{"id":"org.example.minimal","name":"Minimal App","publisher":"Example","version":"1.0.0","applications":{"runtime-placeholder":{"entryPoint":"app"}},"branding":{}}""".Replace("runtime-placeholder", rid);
+var minimal = JsonSerializer.Deserialize(minimalJson, InstallerJson.Default.ProductConfig)!;
+Paths.Validate(minimal);
+Check(minimal.SchemaVersion == 1 && minimal.Template == "divinelabs-classic" && minimal.Language == "en" &&
+    minimal.Branding.ShowFrameworkBranding && minimal.Branding.Accent == "#6658E8" && minimal.DataDirectories is ["data", "logs"] &&
+    minimal.Applications[rid].Source == "application" && minimal.Applications[rid].ExecutableFiles.Length == 0,
+    "source-generated reader preserves omitted root and nested configuration defaults");
 string first = Make("1.0.0", (entry, "first"), ("obsolete.txt", "old"));
+string legacyPackage = Path.Combine(work, "legacy-0.1.dlpack"); File.Copy(first, legacyPackage);
+using (var zip = ZipFile.Open(legacyPackage, ZipArchiveMode.Update)) {
+    var manifestEntry = zip.GetEntry("manifest.json")!; string manifestJson;
+    using (var reader = new StreamReader(manifestEntry.Open())) manifestJson = reader.ReadToEnd();
+    const string templateField = "\"template\": \"divinelabs-classic\",";
+    if (!manifestJson.Contains(templateField)) throw new Exception("Legacy fixture did not find template metadata.");
+    manifestEntry.Delete(); using var writer = new StreamWriter(zip.CreateEntry("manifest.json").Open());
+    writer.Write(manifestJson.Replace(templateField, ""));
+}
+string legacyTarget = Path.Combine(work, "legacy-installation");
+await api.InstallAsync(new(legacyPackage, legacyTarget, Options: new(false)));
+Check(api.GetInstallation(legacyTarget)?.Product.Template == "divinelabs-classic", "public API installs legacy package metadata without template identity");
+string legacyReceiptPath = Paths.Inside(legacyTarget, Paths.ReceiptPath);
+File.WriteAllText(legacyReceiptPath, File.ReadAllText(legacyReceiptPath).Replace("\"template\": \"divinelabs-classic\",", ""));
+Check(api.GetInstallation(legacyTarget)?.Product.Template == "divinelabs-classic", "public API reads legacy receipt metadata without template identity");
+await api.UninstallAsync(new(legacyTarget));
 File.WriteAllText(Path.Combine(source, "icon.bin"), "same asset and payload");
 string brandingConfig = Path.Combine(work, "branding.json");
 File.WriteAllText(brandingConfig, JsonSerializer.Serialize(product with { Branding = new() { Icon = Path.Combine(source, "icon.bin") } }, InstallerJson.Default.ProductConfig));

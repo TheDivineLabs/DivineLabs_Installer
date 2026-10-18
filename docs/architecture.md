@@ -50,9 +50,12 @@ shipping a Native AOT host removes the destination machine's .NET runtime requir
 
 ## Compatibility
 
-0.2 reads 0.1 packages/configs/receipts with the default Classic identity. The 0.2 bundle builder requires
+0.2.1 reads 0.1 packages/configs/receipts with the default Classic identity. The 0.2 bundle builder requires
 runtime format 2; old 0.1 runtimes are rejected before bundle output because they cannot read new package metadata. Newly written metadata includes
 `template`; strict 0.1 readers cannot read it. Keep the new maintenance runtime when updating a standalone
 installation; downgrade to the old reader is not supported. Do not switch a standalone installation into
 launcher-owned maintenance without an explicit integration/runtime migration.
 The synchronous `Engine` methods remain available; async hosts should use `IInstallerEngine`.
+
+Configuration DTOs use generated setters so omitted JSON members retain constructor defaults under Native AOT.
+Version 0.2.0 had an omitted-defaults reader defect; use 0.2.1 or later.

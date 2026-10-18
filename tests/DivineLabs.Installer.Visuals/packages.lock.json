@@ -217,8 +217,8 @@
           "Avalonia.Desktop": "[12.1.4, )",
           "Avalonia.Fonts.Inter": "[12.1.4, )",
           "Avalonia.Themes.Fluent": "[12.1.4, )",
-          "DivineLabs.Installer.Platforms": "[0.2.0, )",
-          "DivineLabs.Installer.Templates.Classic": "[0.2.0, )"
+          "DivineLabs.Installer.Platforms": "[0.2.1, )",
+          "DivineLabs.Installer.Templates.Classic": "[0.2.1, )"
         }
       },
       "divinelabs.installer.components": {
@@ -233,15 +233,15 @@
       "divinelabs.installer.platforms": {
         "type": "Project",
         "dependencies": {
-          "DivineLabs.Installer.Core": "[0.2.0, )"
+          "DivineLabs.Installer.Core": "[0.2.1, )"
         }
       },
       "divinelabs.installer.templates.classic": {
         "type": "Project",
         "dependencies": {
           "Avalonia.Themes.Fluent": "[12.1.4, )",
-          "DivineLabs.Installer.Components": "[0.2.0, )",
-          "DivineLabs.Installer.Core": "[0.2.0, )"
+          "DivineLabs.Installer.Components": "[0.2.1, )",
+          "DivineLabs.Installer.Core": "[0.2.1, )"
         }
       },
       "embeddedlauncher": {
@@ -249,9 +249,9 @@
         "dependencies": {
           "Avalonia.Desktop": "[12.1.4, )",
           "Avalonia.Themes.Fluent": "[12.1.4, )",
-          "DivineLabs.Installer.Components": "[0.2.0, )",
-          "DivineLabs.Installer.Core": "[0.2.0, )",
-          "DivineLabs.Installer.Platforms": "[0.2.0, )"
+          "DivineLabs.Installer.Components": "[0.2.1, )",
+          "DivineLabs.Installer.Core": "[0.2.1, )",
+          "DivineLabs.Installer.Platforms": "[0.2.1, )"
         }
       }
     }

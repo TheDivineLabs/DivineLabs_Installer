@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory)][string]$Config,
     [Parameter(Mandatory)][ValidateSet('win-x64','win-arm64','osx-x64','osx-arm64','linux-x64','linux-arm64')][string]$Runtime,
     [string]$Output = 'installer-output',
-    [ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?$')][string]$SdkVersion = 'v0.2.0'
+    [ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?$')][string]$SdkVersion = 'v0.2.1'
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest

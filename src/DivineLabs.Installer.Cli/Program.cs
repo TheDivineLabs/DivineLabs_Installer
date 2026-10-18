@@ -132,7 +132,7 @@ internal static class Program {
     }
     private sealed class ConsoleProgress : IProgress<InstallProgress> { public void Report(InstallProgress value) => Console.WriteLine($"{value.Percent,3}% {value.Phase}: {value.Detail}"); }
     private static void Help() => Console.WriteLine("""
-DivineLabs Installer 0.2.0 — cross-platform, config-driven application installers
+DivineLabs Installer 0.2.1 — cross-platform, config-driven application installers
   divinepack init [--dir DIR]
   divinepack validate [--config installer.json]
   divinepack pack --runtime RID --output application.dlpack [--config installer.json]

@@ -212,7 +212,7 @@
       "divinelabs.installer.platforms": {
         "type": "Project",
         "dependencies": {
-          "DivineLabs.Installer.Core": "[0.2.0, )"
+          "DivineLabs.Installer.Core": "[0.2.1, )"
         }
       }
     },

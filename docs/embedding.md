@@ -4,7 +4,7 @@
 
 ## Get the libraries
 
-Download the four `.nupkg` files from [0.2.0 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0)
+Download the four `.nupkg` files from [0.2.1 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.1)
 into one local NuGet feed. These are actual .NET 10 libraries; they are not published to nuget.org in this preview.
 Alternatively build the feed from this repository:
 
@@ -16,12 +16,12 @@ In your project directory:
 
 ```sh
 dotnet nuget add source /absolute/path/to/libraries --name DivineLabsLocal --configfile NuGet.Config
-dotnet add package DivineLabs.Installer.Core --version 0.2.0
-dotnet add package DivineLabs.Installer.Platforms --version 0.2.0
+dotnet add package DivineLabs.Installer.Core --version 0.2.1
+dotnet add package DivineLabs.Installer.Platforms --version 0.2.1
 # Optional for Avalonia hosts:
-dotnet add package DivineLabs.Installer.Components --version 0.2.0
+dotnet add package DivineLabs.Installer.Components --version 0.2.1
 # Optional complete template:
-dotnet add package DivineLabs.Installer.Templates.Classic --version 0.2.0
+dotnet add package DivineLabs.Installer.Templates.Classic --version 0.2.1
 ```
 
 Create a project-local `NuGet.Config` first if your project does not have one:
