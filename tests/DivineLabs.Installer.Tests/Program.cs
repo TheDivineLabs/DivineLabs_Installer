@@ -24,6 +24,12 @@ string Make(string version, params (string Name, string Content)[] files) {
 void Check(bool ok, string name) { if (!ok) throw new Exception("FAIL: " + name); passed++; Console.WriteLine("PASS: " + name); }
 void Refused(Action action, string name) { bool refused = false; try { action(); } catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException) { refused = true; } Check(refused, name); }
 string first = Make("1.0.0", (entry, "first"), ("obsolete.txt", "old"));
+File.WriteAllText(Path.Combine(source, "icon.bin"), "same asset and payload");
+string brandingConfig = Path.Combine(work, "branding.json");
+File.WriteAllText(brandingConfig, JsonSerializer.Serialize(product with { Branding = new() { Icon = Path.Combine(source, "icon.bin") } }, InstallerJson.Default.ProductConfig));
+string brandingPackage = Path.Combine(work, "branding.dlpack"); Package.Build(brandingConfig, rid, brandingPackage);
+using (var branded = new Package(brandingPackage)) Check(branded.ReadAsset(branded.Manifest.Product.Branding.Icon)!.Length > 0, "identical branding and payload assets remain distinct archive entries");
+if (OperatingSystem.IsMacOS()) Check(Paths.CanonicalHostPath("/var/folders").StartsWith("/private/var/", StringComparison.Ordinal), "macOS system temporary-directory alias resolves without trusting app symlinks");
 engine.Install(first, target, options: new(false));
 Check(File.ReadAllText(Path.Combine(target, entry)) == "first", "install extracts verified payload");
 if (!OperatingSystem.IsWindows()) Check((File.GetUnixFileMode(Path.Combine(target, entry)) & UnixFileMode.UserExecute) != 0, "entry point retains executable mode");

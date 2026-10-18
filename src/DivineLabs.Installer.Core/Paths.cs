@@ -27,8 +27,23 @@ public static partial class Paths {
         if (!result.StartsWith(fullRoot, StringComparison.Ordinal)) throw new InvalidDataException("Path escapes installation directory.");
         return result;
     }
+    public static string CanonicalHostPath(string path) {
+        string full = Path.GetFullPath(path);
+        // macOS exposes standard OS directories through fixed aliases. Resolve only those
+        // trusted system aliases; application-controlled symlinks are still rejected.
+        if (OperatingSystem.IsMacOS()) foreach (string alias in new[] { "/var", "/tmp", "/etc" }) {
+            if (full == alias || full.StartsWith(alias + "/", StringComparison.Ordinal)) {
+                string expected = "/private" + alias;
+                var link = new DirectoryInfo(alias);
+                if (link.LinkTarget != null && link.ResolveLinkTarget(true)?.FullName == expected)
+                    full = expected + full[alias.Length..];
+                break;
+            }
+        }
+        return full;
+    }
     public static void NoLinks(string path) {
-        for (string? current = Path.GetFullPath(path); current != null; current = Path.GetDirectoryName(current)) {
+        for (string? current = CanonicalHostPath(path); current != null; current = Path.GetDirectoryName(current)) {
             if ((File.Exists(current) || Directory.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
                 throw new IOException($"Symbolic links and reparse points are not supported: {current}");
             // Dangling symbolic links are reported by LinkTarget even when Exists is false.
@@ -36,7 +51,7 @@ public static partial class Paths {
         }
     }
     public static string Target(string root) {
-        string full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
+        string full = Path.TrimEndingDirectorySeparator(CanonicalHostPath(root));
         NoLinks(full);
         if (Path.GetDirectoryName(full) == null || full == Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) ||
             (OperatingSystem.IsWindows() && full.Equals(Environment.GetFolderPath(Environment.SpecialFolder.Windows), StringComparison.OrdinalIgnoreCase)) ||

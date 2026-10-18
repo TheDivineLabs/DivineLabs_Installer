@@ -40,8 +40,8 @@ public sealed class Session : IDisposable {
 public static class MaintenanceHelper {
     public static string Root => Path.Combine(Path.GetTempPath(), "DivineLabsInstaller");
     public static bool Relocate(string target, bool silent, bool removeData) {
-        string source = AppContext.BaseDirectory;
-        string ownedRuntime = Paths.Inside(Path.GetFullPath(target), Paths.RuntimeDirectory);
+        string source = Paths.CanonicalHostPath(AppContext.BaseDirectory);
+        string ownedRuntime = Paths.Inside(Paths.CanonicalHostPath(target), Paths.RuntimeDirectory);
         if (!Path.TrimEndingDirectorySeparator(source).Equals(Path.TrimEndingDirectorySeparator(ownedRuntime), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) return false;
         Directory.CreateDirectory(Root); Paths.NoLinks(Root);
         string work = Path.Combine(Root, "maintenance-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(work);
@@ -57,8 +57,8 @@ public static class MaintenanceHelper {
         Process.Start(start); return true;
     }
     public static void Cleanup() {
-        string work = Path.TrimEndingDirectorySeparator(AppContext.BaseDirectory);
-        string prefix = Path.GetFullPath(Root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        string work = Path.TrimEndingDirectorySeparator(Paths.CanonicalHostPath(AppContext.BaseDirectory));
+        string prefix = Paths.CanonicalHostPath(Root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         if (!work.StartsWith(prefix, StringComparison.Ordinal) || !Path.GetFileName(work).StartsWith("maintenance-", StringComparison.Ordinal) ||
             !File.Exists(Path.Combine(work, ".maintenance-owned"))) return;
         Paths.NoLinks(work);

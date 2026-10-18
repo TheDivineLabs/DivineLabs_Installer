@@ -26,9 +26,9 @@ public sealed class Package : IDisposable {
         Paths.Validate(Manifest.Product); Paths.Relative(Manifest.EntryPoint);
         var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var entries = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "manifest.json" };
-        foreach (var item in Manifest.Files.Concat(Manifest.Assets)) {
+        foreach (var pair in Manifest.Files.Select(f => (Item: f, Asset: false)).Concat(Manifest.Assets.Select(f => (Item: f, Asset: true)))) {
+            var item = pair.Item; bool asset = pair.Asset;
             Paths.Relative(item.Path);
-            bool asset = Manifest.Assets.Contains(item);
             if (!files.Add((asset ? "asset/" : "file/") + item.Path) || item.Length < 0 ||
                 item.Sha256.Length != 64 || !item.Sha256.All(Uri.IsHexDigit)) throw new InvalidDataException("Invalid file inventory.");
             if (!asset && (item.Path.Split('/')[0].Equals(Paths.StateDirectory, StringComparison.OrdinalIgnoreCase) || Paths.IsData(Manifest.Product, item.Path)))
@@ -54,12 +54,13 @@ public sealed class Package : IDisposable {
     }
     public void Extract(string stage, IProgress<InstallProgress>? progress, CancellationToken cancel) {
         long total = Manifest.Files.Sum(f => f.Length), written = 0;
+        byte[] buffer = new byte[128 * 1024];
         foreach (var file in Manifest.Files) {
             cancel.ThrowIfCancellationRequested();
             string destination = Paths.Inside(stage, file.Path); Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             using (var input = zip.GetEntry("payload/" + file.Path)!.Open())
             using (var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None)) {
-                byte[] buffer = new byte[128 * 1024]; int count;
+                int count;
                 using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 while ((count = input.Read(buffer)) > 0) { cancel.ThrowIfCancellationRequested(); output.Write(buffer, 0, count); hash.AppendData(buffer, 0, count); }
                 output.Flush(true);
@@ -86,6 +87,7 @@ public sealed class Package : IDisposable {
         if (fullDestination.StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Package output must be outside application source.");
         var files = new List<PackageFile>(); var assets = new List<PackageFile>();
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        byte[] buffer = new byte[128 * 1024];
         using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.ReadWrite);
         try {
             using (var archive = new ZipArchive(output, ZipArchiveMode.Create, true)) {
@@ -95,14 +97,14 @@ public sealed class Package : IDisposable {
                         throw new InvalidDataException($"Colliding, reserved or user-data file: {relative}");
                     int mode = OperatingSystem.IsWindows() ? 420 : (int)File.GetUnixFileMode(path) & 511;
                     if (relative == app.EntryPoint || app.ExecutableFiles.Contains(relative)) mode |= 73;
-                    files.Add(Add(archive, path, "payload/" + relative, relative, mode));
+                    files.Add(Add(archive, path, "payload/" + relative, relative, mode, buffer));
                 }
                 string? Asset(string? path, string name) {
                     if (path == null) return null;
                     string full = Path.GetFullPath(path, configRoot); Paths.NoLinks(full);
                     if (new FileInfo(full).Length > 16 * 1024 * 1024) throw new InvalidDataException("Branding/license exceeds 16 MiB.");
                     string relative = name + Path.GetExtension(full).ToLowerInvariant();
-                    assets.Add(Add(archive, full, "assets/" + relative, relative, 420)); return relative;
+                    assets.Add(Add(archive, full, "assets/" + relative, relative, 420, buffer)); return relative;
                 }
                 var portable = config with { Applications = [], Schema = null,
                     Branding = config.Branding with { Icon = Asset(config.Branding.Icon, "icon"), Cover = Asset(config.Branding.Cover, "cover") },
@@ -114,12 +116,12 @@ public sealed class Package : IDisposable {
             }
         } catch { output.Dispose(); File.Delete(destination); throw; }
     }
-    private static PackageFile Add(ZipArchive archive, string path, string entryName, string relative, int mode) {
+    private static PackageFile Add(ZipArchive archive, string path, string entryName, string relative, int mode, byte[] buffer) {
         var entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
         entry.LastWriteTime = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero); entry.ExternalAttributes = (0x8000 | mode) << 16;
         using var input = File.OpenRead(path); long length = input.Length;
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256); using var output = entry.Open();
-        byte[] buffer = new byte[128 * 1024]; int count;
+        int count;
         while ((count = input.Read(buffer)) > 0) { output.Write(buffer, 0, count); hash.AppendData(buffer, 0, count); }
         return new(relative, length, Convert.ToHexString(hash.GetHashAndReset()), mode);
     }

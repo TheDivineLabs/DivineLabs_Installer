@@ -101,8 +101,8 @@ public sealed class Engine(IPlatformServices platform, string? workRoot = null) 
             journalWritten = true;
             Apply(target, items, cancel, progress);
             Write(Paths.Inside(target, Paths.ReceiptPath), next, InstallerJson.Default.Receipt);
-            Write(Path.Combine(txn, "journal.json"), new TransactionJournal(next.ProductId, "committed", previous, items), InstallerJson.Default.TransactionJournal);
             Write(Paths.Inside(target, OwnerPath), new OwnershipRecord(1, next.ProductId), InstallerJson.Default.OwnershipRecord);
+            Write(Path.Combine(txn, "journal.json"), new TransactionJournal(next.ProductId, "committed", previous, items), InstallerJson.Default.TransactionJournal);
             Paths.DeleteOwnedTree(txn);
             var warnings = new List<string>();
             if (options.Integrations) TryIntegration(() => platform.Register(target, next), warnings);
