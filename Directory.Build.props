@@ -4,6 +4,6 @@
 <RepositoryUrl>https://github.com/TheDivineLabs/DivineLabs_Installer</RepositoryUrl>
 <Deterministic>true</Deterministic><ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 <IsAotCompatible>true</IsAotCompatible><JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
-<IsPackable>false</IsPackable><AvaloniaVersion>12.1.4</AvaloniaVersion>
+<IsPackable>false</IsPackable><PublishDocumentationFiles>false</PublishDocumentationFiles><AvaloniaVersion>12.1.4</AvaloniaVersion>
 <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 </PropertyGroup></Project>
