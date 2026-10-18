@@ -1,0 +1,57 @@
+name: Build and verify
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    name: Native AOT / ${{ matrix.runtime }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runtime: win-x64, os: windows-2025 }
+          - { runtime: win-arm64, os: windows-11-arm }
+          - { runtime: osx-x64, os: macos-15-intel }
+          - { runtime: osx-arm64, os: macos-15 }
+          - { runtime: linux-x64, os: ubuntu-22.04 }
+          - { runtime: linux-arm64, os: ubuntu-22.04-arm }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.402'
+      - name: Linux native dependencies
+        if: startsWith(matrix.runtime, 'linux-')
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-6 libice6 libsm6 libfontconfig1
+      - name: Transaction contract tests
+        run: dotnet run --project tests/DivineLabs.Installer.Tests -c Release
+      - name: Publish Native AOT SDK
+        shell: pwsh
+        run: ./scripts/publish.ps1 -Runtime '${{ matrix.runtime }}' -Output '${{ github.workspace }}/artifacts/sdk-${{ matrix.runtime }}'
+      - name: Native config / installation / installed uninstaller smoke
+        shell: pwsh
+        run: ./scripts/smoke-native.ps1 -Sdk './artifacts/sdk-${{ matrix.runtime }}' -Work './artifacts/smoke-${{ matrix.runtime }}'
+      - name: Avalonia screenshots
+        if: matrix.runtime == 'win-x64'
+        run: dotnet run --project tests/DivineLabs.Installer.Visuals -c Release -- artifacts/screenshots
+      - name: Archive SDK
+        shell: pwsh
+        run: |
+          $directory = 'artifacts/sdk-${{ matrix.runtime }}'
+          if ($IsWindows) { Compress-Archive -Path "$directory/*" -DestinationPath 'artifacts/DivineLabs-Installer-${{ matrix.runtime }}.zip' }
+          else { tar -czf 'artifacts/DivineLabs-Installer-${{ matrix.runtime }}.tar.gz' -C $directory . }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DivineLabs-Installer-${{ matrix.runtime }}
+          path: |
+            artifacts/DivineLabs-Installer-*
+            artifacts/smoke-${{ matrix.runtime }}/result.json
+            artifacts/screenshots/
+          if-no-files-found: error

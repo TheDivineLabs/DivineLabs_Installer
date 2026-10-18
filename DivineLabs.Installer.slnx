@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DivineLabs.Installer.Cli/DivineLabs.Installer.Cli.csproj" />
+    <Project Path="src/DivineLabs.Installer.Core/DivineLabs.Installer.Core.csproj" />
+    <Project Path="src/DivineLabs.Installer.Desktop/DivineLabs.Installer.Desktop.csproj" />
+    <Project Path="src/DivineLabs.Installer.Platforms/DivineLabs.Installer.Platforms.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DivineLabs.Installer.Tests/DivineLabs.Installer.Tests.csproj" />
+    <Project Path="tests/DivineLabs.Installer.Visuals/DivineLabs.Installer.Visuals.csproj" />
+  </Folder>
+</Solution>

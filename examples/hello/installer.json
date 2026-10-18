@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TheDivineLabs/DivineLabs_Installer/main/schemas/installer.schema.json",
+  "schemaVersion": 1,
+  "id": "org.example.hello",
+  "name": "Hello Application",
+  "publisher": "Example",
+  "version": "1.0.0",
+  "description": "A small application, ready to install.",
+  "installDirectoryName": "",
+  "license": "LICENSE.txt",
+  "language": "en",
+  "branding": {
+    "icon": null,
+    "cover": null,
+    "accent": "#6658E8"
+  },
+  "applications": {
+    "win-x64": {
+      "source": "application/windows",
+      "entryPoint": "hello.cmd",
+      "executableFiles": []
+    },
+    "win-arm64": {
+      "source": "application/windows",
+      "entryPoint": "hello.cmd",
+      "executableFiles": []
+    },
+    "osx-x64": {
+      "source": "application/unix",
+      "entryPoint": "hello.sh",
+      "executableFiles": []
+    },
+    "osx-arm64": {
+      "source": "application/unix",
+      "entryPoint": "hello.sh",
+      "executableFiles": []
+    },
+    "linux-x64": {
+      "source": "application/unix",
+      "entryPoint": "hello.sh",
+      "executableFiles": []
+    },
+    "linux-arm64": {
+      "source": "application/unix",
+      "entryPoint": "hello.sh",
+      "executableFiles": []
+    }
+  },
+  "links": [
+    {
+      "label": "GitHub",
+      "url": "https://github.com/TheDivineLabs/DivineLabs_Installer"
+    },
+    {
+      "label": "Documentation",
+      "url": "https://github.com/TheDivineLabs/DivineLabs_Installer#readme"
+    }
+  ],
+  "dataDirectories": [
+    "data",
+    "logs"
+  ]
+}
