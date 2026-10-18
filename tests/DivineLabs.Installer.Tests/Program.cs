@@ -33,6 +33,15 @@ if (OperatingSystem.IsMacOS()) Check(Paths.CanonicalHostPath("/var/folders").Sta
 engine.Install(first, target, options: new(false));
 Check(File.ReadAllText(Path.Combine(target, entry)) == "first", "install extracts verified payload");
 if (!OperatingSystem.IsWindows()) Check((File.GetUnixFileMode(Path.Combine(target, entry)) & UnixFileMode.UserExecute) != 0, "entry point retains executable mode");
+if (OperatingSystem.IsLinux()) {
+    string xdg = Path.Combine(work, "xdg"), desktop = Path.Combine(work, "desktop"); Directory.CreateDirectory(desktop);
+    var isolatedPlatform = new PlatformServices(xdg, desktop);
+    var desktopOnly = Engine.ReadReceipt(target)! with { DesktopShortcut = true, MenuShortcut = false };
+    isolatedPlatform.Register(target, desktopOnly);
+    Check(File.Exists(Path.Combine(desktop, product.Id + ".desktop")) && !Directory.Exists(Path.Combine(xdg, "applications")), "Linux desktop shortcut is independent of application-menu option");
+    isolatedPlatform.Unregister(target, desktopOnly);
+    Check(!File.Exists(Path.Combine(desktop, product.Id + ".desktop")), "Linux launcher cleanup stays within isolated integration directories");
+}
 Directory.CreateDirectory(Path.Combine(target, "data")); File.WriteAllText(Path.Combine(target, "data", "settings.json"), "user data"); File.WriteAllText(Path.Combine(target, "personal.txt"), "foreign");
 string update = Make("1.1.0", (entry, "second"), ("new.txt", "new"));
 engine.Install(update, target, options: new(false));

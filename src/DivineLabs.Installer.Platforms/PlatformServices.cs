@@ -5,10 +5,11 @@ using DivineLabs.Installer.Core;
 using Microsoft.Win32;
 namespace DivineLabs.Installer.Platforms;
 
-public sealed class PlatformServices : IPlatformServices {
+public sealed class PlatformServices(string? dataHomeOverride = null, string? desktopOverride = null) : IPlatformServices {
     public static string HostExecutable => OperatingSystem.IsWindows() ? "DivineLabs.Installer.exe" : "DivineLabs.Installer";
     private static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-    private static string DataHome => Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { Length: > 0 } path && Path.IsPathRooted(path) ? path : Path.Combine(Home, ".local", "share");
+    private string DataHome => dataHomeOverride ?? ( Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { Length: > 0 } path && Path.IsPathRooted(path) ? path : Path.Combine(Home, ".local", "share"));
+    private string DesktopDirectory => desktopOverride ?? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
     public string DefaultDirectory(ProductConfig product) {
         Paths.Validate(product);
         string folder = product.InstallDirectoryName.Length == 0 ? product.Name : product.InstallDirectoryName;
@@ -36,26 +37,24 @@ public sealed class PlatformServices : IPlatformServices {
     public void Register(string root, Receipt receipt) {
         if (OperatingSystem.IsWindows()) RegisterWindows(root, receipt);
         else if (OperatingSystem.IsLinux()) {
-            if (receipt.MenuShortcut) {
-                string path = Path.Combine(DataHome, "applications", receipt.ProductId + ".desktop"); Paths.NoLinks(path);
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                if (File.Exists(path) && !File.ReadAllText(path).Contains("X-DivineLabs-Product=" + receipt.ProductId + "\n", StringComparison.Ordinal)) throw new IOException("Application menu entry belongs to another application.");
-                string exe = Paths.Inside(root, receipt.EntryPoint), host = Paths.Inside(root, Paths.RuntimeDirectory + "/" + HostExecutable);
-                string content = $"[Desktop Entry]\nType=Application\nName={DesktopValue(receipt.Product.Name)}\nExec={Exec(exe)}\nPath={DesktopValue(root)}\nTerminal=false\nCategories=Utility;\nX-DivineLabs-Product={receipt.ProductId}\nX-DivineLabs-InstallPath={DesktopValue(root)}\n";
-                if (File.Exists(host)) content += $"Actions=Uninstall;\n\n[Desktop Action Uninstall]\nName=Uninstall\nExec={Exec(host)} --uninstall --dir {Exec(root)}\n";
+            string exe = Paths.Inside(root, receipt.EntryPoint), host = Paths.Inside(root, Paths.RuntimeDirectory + "/" + HostExecutable);
+            string content = $"[Desktop Entry]\nType=Application\nName={DesktopValue(receipt.Product.Name)}\nExec={Exec(exe)}\nPath={DesktopValue(root)}\nTerminal=false\nCategories=Utility;\nX-DivineLabs-Product={receipt.ProductId}\nX-DivineLabs-InstallPath={DesktopValue(root)}\n";
+            if (File.Exists(host)) content += $"Actions=Uninstall;\n\n[Desktop Action Uninstall]\nName=Uninstall\nExec={Exec(host)} --uninstall --dir {Exec(root)}\n";
+            void WriteLauncher(string path, bool executable) {
+                Paths.NoLinks(path); Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                if (File.Exists(path) && !File.ReadAllText(path).Contains("X-DivineLabs-InstallPath=" + DesktopValue(root) + "\n", StringComparison.Ordinal)) throw new IOException("Launcher belongs to another installation.");
                 File.WriteAllText(path, content);
-                if (receipt.DesktopShortcut) {
-                    string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                    if (Directory.Exists(desktop)) { string shortcut = Path.Combine(desktop, receipt.ProductId + ".desktop"); Paths.NoLinks(shortcut); File.WriteAllText(shortcut, content); File.SetUnixFileMode(shortcut, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute); }
-                }
+                if (executable) File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
             }
+            if (receipt.MenuShortcut) WriteLauncher(Path.Combine(DataHome, "applications", receipt.ProductId + ".desktop"), false);
+            if (receipt.DesktopShortcut && Directory.Exists(DesktopDirectory)) WriteLauncher(Path.Combine(DesktopDirectory, receipt.ProductId + ".desktop"), true);
         }
         // macOS applications live in ~/Applications; launch and maintenance need no registry or shell scripts.
     }
     public void Unregister(string root, Receipt receipt) {
         if (OperatingSystem.IsWindows()) UnregisterWindows(root, receipt);
         else if (OperatingSystem.IsLinux()) {
-            foreach (string directory in new[] { Path.Combine(DataHome, "applications"), Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) }) {
+            foreach (string directory in new[] { Path.Combine(DataHome, "applications"), DesktopDirectory }) {
                 if (string.IsNullOrEmpty(directory)) continue;
                 string path = Path.Combine(directory, receipt.ProductId + ".desktop"); Paths.NoLinks(path);
                 if (File.Exists(path) && File.ReadAllText(path).Contains("X-DivineLabs-InstallPath=" + DesktopValue(root) + "\n", StringComparison.Ordinal)) File.Delete(path);

@@ -18,7 +18,6 @@ $entryPoint = if ($Runtime.StartsWith('win-')) { 'DivineLabs.Installer.exe' } el
 @{formatVersion=1;runtime=$Runtime;entryPoint=$entryPoint;nativeAot=$true} | ConvertTo-Json | Set-Content -LiteralPath "$runtimeOutput/runtime.json" -Encoding utf8
 Copy-Item -LiteralPath "$root/LICENSE","$root/NOTICE.md" -Destination $Output
 Copy-Item -LiteralPath "$root/schemas" -Destination $Output -Recurse
-Copy-Item -LiteralPath "$root/assets/licenses" -Destination $runtimeOutput -Recurse
 Copy-Item -LiteralPath "$root/assets/licenses" -Destination $Output -Recurse
 $commit = (& git -C $root rev-parse HEAD 2>$null)
 @{version='0.1.0';runtime=$Runtime;nativeAot=$true;sourceCommit=$commit;builtAt=[DateTime]::UtcNow.ToString('O')} | ConvertTo-Json | Set-Content -LiteralPath "$Output/build.json" -Encoding utf8

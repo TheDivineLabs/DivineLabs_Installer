@@ -53,7 +53,7 @@ public static partial class Paths {
     public static string Target(string root) {
         string full = Path.TrimEndingDirectorySeparator(CanonicalHostPath(root));
         NoLinks(full);
-        if (Path.GetDirectoryName(full) == null || full == Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) ||
+        if (full.Any(char.IsControl) || Path.GetDirectoryName(full) == null || full == Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) ||
             (OperatingSystem.IsWindows() && full.Equals(Environment.GetFolderPath(Environment.SpecialFolder.Windows), StringComparison.OrdinalIgnoreCase)) ||
             Directory.Exists(Path.Combine(full, ".git"))) throw new IOException("Choose a dedicated application directory.");
         return full;

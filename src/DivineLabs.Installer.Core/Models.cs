@@ -8,6 +8,7 @@ public sealed record ApplicationSource {
     public string[] ExecutableFiles { get; init; } = [];
 }
 public sealed record Branding {
+    public bool ShowFrameworkBranding { get; init; } = true;
     public string? Icon { get; init; }
     public string? Cover { get; init; }
     public string Accent { get; init; } = "#6658E8";

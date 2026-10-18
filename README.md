@@ -7,6 +7,8 @@ The interface follows DivineLabs Idle Slayer's maintenance-window design: brande
 step navigation, license acceptance, options, progress and matching uninstall flow.
 English/Russian and light/dark themes are included. No game artwork is bundled.
 
+![Installer welcome](docs/images/welcome.png)
+
 **Initial version: 0.1.0.** No .NET installation or WebView is needed on destination machines;
 OS/native graphics dependencies still apply. Native AOT does not make every binary a single file.
 
@@ -47,6 +49,7 @@ Application developers need no C#, Avalonia, .NET SDK or embedded application SD
 ```
 
 Paths are relative to the config. List only architectures you actually ship.
+`branding.showFrameworkBranding: false` hides the template logo and attribution in the UI.
 PNG is recommended for branding. The reference cover slot is 330×740.
 The JSON schema provides editor completion. `links` contains optional `{ "label", "url" }`
 HTTP(S) links; `language` accepts `en` or `ru`.
@@ -124,7 +127,7 @@ dotnet run --project tests/DivineLabs.Installer.Visuals -c Release -- artifacts/
 
 CI covers six OS/CPU targets: contracts, Native AOT SDK publication, configuration-driven
 bundle construction, installation and the **installed** uninstaller, including data retention.
-Windows renders all five pages in both themes/languages without opening a desktop window.
+Windows renders setup and uninstall pages in both themes/languages without opening a desktop window.
 
 `Core` contains portable contracts/transactions; `Platforms` implements system integration;
 `Desktop` is the Avalonia shell; `Cli` is the native `divinepack` builder.

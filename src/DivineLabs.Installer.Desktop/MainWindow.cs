@@ -17,7 +17,7 @@ public sealed class MainWindow : Window {
     private readonly Dictionary<string, Bitmap> images = [];
     private string language, target, status = "", error = "";
     private bool dark, accepted, desktopShortcut = true, menuShortcut = true, removeData, busy, succeeded, allowClose;
-    private int page;
+    private int page, licenseTab;
     private CancellationTokenSource? cancellation;
     private TextBox? targetBox;
     private ProgressBar? progressBar;
@@ -30,6 +30,7 @@ public sealed class MainWindow : Window {
         Title = session.Product.Name; Width = 1100; Height = 790; MinWidth = 940; MinHeight = 690;
         WindowDecorations = WindowDecorations.None; WindowStartupLocation = WindowStartupLocation.CenterScreen;
         if (Image(session.Product.Branding.Icon) is { } icon) Icon = new WindowIcon(icon);
+        else { using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("DivineLabs.Installer.Icon")!; Icon = new WindowIcon(stream); }
         Closing += (_, e) => { if (!allowClose && page != 4) { e.Cancel = true; ConfirmCancel(); } };
         Closed += (_, _) => { foreach (var image in images.Values) image.Dispose(); cancellation?.Dispose(); };
         Build();
@@ -54,7 +55,9 @@ public sealed class MainWindow : Window {
     }
     private Control ProductIcon(double size) {
         if (Image(session.Product.Branding.Icon) is { } bitmap) return new Border { Width = size, Height = size, CornerRadius = new(size * .16), ClipToBounds = true, Child = new Image { Source = bitmap, Stretch = Stretch.Uniform } };
-        return Logo(size);
+        if (session.Product.Branding.ShowFrameworkBranding) return Logo(size);
+        var initial = Center(System.Globalization.StringInfo.GetNextTextElement(session.Product.Name), size * .5, weight: FontWeight.Bold); initial.Foreground = Brushes.White;
+        return new Border { Width = size, Height = size, CornerRadius = new(size * .2), Background = accent, Child = initial };
     }
     public static Control Logo(double size) {
         var grid = new Grid { Width = 144, Height = 144 };
@@ -85,7 +88,7 @@ public sealed class MainWindow : Window {
     }
     private Control Header() {
         var header = Grid("*,140,16,140,16,48,48,48"); header.Background = Brush.Parse(dark ? "#151B28" : "#F5F6FC"); header.Margin = new(16, 0, 0, 0);
-        var title = Grid("28,12,*"); title.Children.Add(Logo(28)); title.Children.Add(Place(Text(session.Product.Name, 16, weight: FontWeight.SemiBold), 2)); header.Children.Add(title);
+        var title = Grid("28,12,*"); title.Children.Add(session.Product.Branding.ShowFrameworkBranding ? Logo(28) : ProductIcon(28)); title.Children.Add(Place(Text(session.Product.Name, 16, weight: FontWeight.SemiBold), 2)); header.Children.Add(title);
         var lang = new ComboBox { ItemsSource = new[] { "English", "Русский" }, SelectedIndex = language == "ru" ? 1 : 0, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
         lang.SelectionChanged += (_, _) => { string value = lang.SelectedIndex == 1 ? "ru" : "en"; if (value != language) { SaveTarget(); language = value; Build(); } }; header.Children.Add(Place(lang, 1));
         var theme = new ComboBox { ItemsSource = new[] { T("☼  Light", "☼  Светлая"), T("☾  Dark", "☾  Тёмная") }, SelectedIndex = dark ? 1 : 0, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -102,7 +105,7 @@ public sealed class MainWindow : Window {
         else {
             grid.Background = new LinearGradientBrush { StartPoint = new(0, 0, RelativeUnit.Relative), EndPoint = new(1, 1, RelativeUnit.Relative), GradientStops = [new(Color.Parse("#6455E5"), 0), new(Color.Parse("#17182B"), 1)] };
             var illustration = new StackPanel { Spacing = 28, VerticalAlignment = VerticalAlignment.Center, Margin = new(36, 0, 36, 120) };
-            illustration.Children.Add(new Border { Child = Logo(168), Opacity = .95, HorizontalAlignment = HorizontalAlignment.Center });
+            illustration.Children.Add(new Border { Child = session.Product.Branding.ShowFrameworkBranding ? Logo(168) : ProductIcon(168), Opacity = .95, HorizontalAlignment = HorizontalAlignment.Center });
             foreach (double opacity in new[] { .15, .10, .06 }) illustration.Children.Add(new Border { Height = 45, CornerRadius = new(12), Background = Brushes.White, Opacity = opacity, Margin = new(8, 0) });
             grid.Children.Add(illustration);
         }
@@ -149,11 +152,24 @@ public sealed class MainWindow : Window {
         return grid;
     }
     private Control Licenses() {
-        var grid = Grid(rows: "Auto,*,Auto"); grid.Margin = new(20, 0);
+        var grid = Grid(rows: "Auto,Auto,*,Auto"); grid.Margin = new(20, 0);
         var title = new StackPanel { Spacing = 9, Margin = new(0, 0, 0, 22) }; title.Children.Add(Center(T("Before we begin", "Перед началом установки"), 28, weight: FontWeight.SemiBold)); title.Children.Add(Center(T("Read the application license.", "Ознакомьтесь с лицензией программы."), 14, true)); grid.Children.Add(title);
-        var content = new TextBox { Text = session.License, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontSize = 12, BorderThickness = new(0), Background = white }; ScrollViewer.SetVerticalScrollBarVisibility(content, Avalonia.Controls.Primitives.ScrollBarVisibility.Auto);
-        var box = Card(content, 20); box.Background = white; grid.Children.Add(Place(box, row: 1));
-        var check = new CheckBox { Content = T("I accept the license terms", "Я принимаю условия лицензионного соглашения"), IsChecked = accepted, Margin = new(0, 18, 0, 2) }; check.IsCheckedChanged += (_, _) => { accepted = check.IsChecked == true; UpdateFooter(); }; grid.Children.Add(Place(check, row: 2)); return grid;
+        var tabs = new StackPanel { Orientation = Orientation.Horizontal };
+        string[] labels = [session.Product.Name, T("Installer", "Установщик"), T("Components", "Компоненты")];
+        for (int i = 0; i < labels.Length; i++) {
+            int index = i; var tab = Button(labels[i], () => { licenseTab = index; Build(); });
+            tab.Background = Brushes.Transparent; tab.CornerRadius = new(0); tab.BorderThickness = new(0, 0, 0, 2); tab.BorderBrush = i == licenseTab ? accent : Brushes.Transparent; tab.Foreground = i == licenseTab ? accent : muted; tabs.Children.Add(tab);
+        }
+        grid.Children.Add(Place(tabs, row: 1));
+        string licenseText = session.License;
+        if (licenseTab == 1) { using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("DivineLabs.Installer.LICENSE")!; using var reader = new StreamReader(stream); licenseText = reader.ReadToEnd(); }
+        if (licenseTab == 2) {
+            string directory = System.IO.Path.Combine(AppContext.BaseDirectory, "licenses");
+            licenseText = Directory.Exists(directory) ? string.Join("\n\n", Directory.GetFiles(directory).Order(StringComparer.Ordinal).Select(file => System.IO.Path.GetFileName(file) + "\n\n" + File.ReadAllText(file))) : T("Component notices are included with the published runtime.", "Лицензии компонентов включены в публикуемый runtime.");
+        }
+        var content = new TextBox { Text = licenseText, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontSize = 12, BorderThickness = new(0), Background = white }; ScrollViewer.SetVerticalScrollBarVisibility(content, Avalonia.Controls.Primitives.ScrollBarVisibility.Auto);
+        var box = Card(content, 20); box.Background = white; grid.Children.Add(Place(box, row: 2));
+        var check = new CheckBox { Content = T("I accept the license terms", "Я принимаю условия лицензионного соглашения"), IsChecked = accepted, Margin = new(0, 18, 0, 2) }; check.IsCheckedChanged += (_, _) => { accepted = check.IsChecked == true; UpdateFooter(); }; grid.Children.Add(Place(check, row: 3)); return grid;
     }
     private Control Options() {
         var panel = new StackPanel { Margin = new(20, 0), VerticalAlignment = VerticalAlignment.Center };
@@ -208,7 +224,7 @@ public sealed class MainWindow : Window {
     private Button? next;
     private Control Footer() {
         var row = Grid("*,Auto,10,Auto,10,Auto"); row.Margin = new(0, 18, 0, 0);
-        row.Children.Add(Text(T("Built with DivineLabs Installer", "Разработано с DivineLabs Installer"), 10, true));
+        row.Children.Add(Text(session.Product.Branding.ShowFrameworkBranding ? T("Built with DivineLabs Installer", "Разработано с DivineLabs Installer") : session.Product.Publisher, 10, true));
         if (page == 4) row.Children.Add(Place(Button(T("Done", "Готово"), Exit, true), 5));
         else {
             row.Children.Add(Place(Button(T("Cancel", "Отмена"), ConfirmCancel), 1));
