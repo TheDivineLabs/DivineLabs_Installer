@@ -182,7 +182,7 @@ public sealed class ClassicWindow : Window {
         var check = new CheckBox { Content = T("I accept the license terms", "Я принимаю условия лицензионного соглашения"), IsChecked = accepted, Margin = new(0, 18, 0, 2) }; check.IsCheckedChanged += (_, _) => { accepted = check.IsChecked == true; UpdateFooter(); }; grid.Children.Add(Place(check, row: 3)); return grid;
     }
     private Control Options() {
-        var panel = new StackPanel { Margin = new(20, 0), VerticalAlignment = VerticalAlignment.Center };
+        var panel = new StackPanel { MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Center };
         panel.Children.Add(Center(session.Uninstall ? T("Review before uninstalling", "Проверим перед удалением") : T("Where should we install?", "Куда установить программу?"), 29, weight: FontWeight.SemiBold));
         var subtitle = Center(session.Uninstall ? T("The application will be removed from this folder.", "Будет удалена программа из этой папки.") : T($"Choose a folder for {session.Product.Name}.", $"Выберите папку для {session.Product.Name}."), 14, true); subtitle.Margin = new(0, 10, 0, 28); panel.Children.Add(subtitle);
         var row = Grid("35,18,*"); var folder = Text("▰", 35); folder.Foreground = accent; row.Children.Add(folder);
@@ -215,11 +215,14 @@ public sealed class ClassicWindow : Window {
         var panel = new StackPanel { Spacing = 5 }; panel.Children.Add(Text(title, 15)); panel.Children.Add(Text(hint, 12, true)); return panel;
     }
     private Control Progress() {
-        operationProgress = new OperationProgressView { VerticalAlignment = VerticalAlignment.Center, Margin = new(20, 0),
+        operationProgress = new OperationProgressView { VerticalAlignment = VerticalAlignment.Center, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Stretch,
             Title = session.Uninstall ? T("Removing the application", "Удаляем программу") : T("Installing the application", "Устанавливаем программу"),
-            Hint = T("You can cancel; file changes will be rolled back.", "Можно отменить операцию: изменения файлов будут отменены."),
-            Detail = status, AccentBrush = accent, SurfaceBrush = surface, TextBrush = text, MutedBrush = muted };
-        return operationProgress;
+            Hint = session.Uninstall ? T("Disconnecting components and removing installed files.", "Отключаем компоненты и удаляем установленные файлы.") : T("Copying and verifying the package files.", "Копируем и проверяем файлы выбранного комплекта."),
+            StageLabels = [T("Preparation", "Подготовка"), session.Uninstall ? T("Removing files", "Удаление файлов") : T("Installing files", "Установка файлов"), T("Verification", "Проверка")],
+            WaitingText = T("Waiting", "Ожидание"), WorkingText = T("In progress…", "Выполняется…"), CompleteText = T("Done  ✓", "Готово  ✓"), IsIndeterminate = busy,
+            Detail = status.Length == 0 ? T("Preparing…", "Подготовка…") : status, AccentBrush = accent, SurfaceBrush = surface, CardBrush = white, LineBrush = line, RingTrackBrush = dark ? line : Brush.Parse("#E2E7F0"), TextBrush = text, MutedBrush = muted };
+        operationProgress.RefreshLabels();
+        return new ScrollViewer { Content = operationProgress, VerticalContentAlignment = VerticalAlignment.Center, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
     }
     private Control Finish() {
         var panel = new StackPanel { Width = 660, VerticalAlignment = VerticalAlignment.Center, Spacing = 18 };
@@ -250,7 +253,7 @@ public sealed class ClassicWindow : Window {
         if (!session.Uninstall && session.PackagePath == null) { error = T("This is a preview. Build an installer with divinepack to install an application.", "Это предварительный просмотр. Соберите установщик через divinepack."); Build(); return; }
         try { target = Paths.Target(target); } catch (Exception ex) { error = ex.Message; Build(); return; }
         error = ""; busy = true; page = 3; cancellation = new(); Build();
-        var progress = new Progress<InstallProgress>(value => { status = value.Detail; if (operationProgress != null) { operationProgress.Percent = value.Percent; operationProgress.Detail = value.Detail; } });
+        var progress = new Progress<InstallProgress>(value => { status = value.Detail; if (operationProgress != null) { operationProgress.IsIndeterminate = value.Percent < 0; operationProgress.Percent = value.Percent; operationProgress.Detail = value.Detail; } });
         try {
             var token = cancellation.Token;
             OperationResult result = session.Uninstall
