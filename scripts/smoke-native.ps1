@@ -5,6 +5,8 @@ if(-not $Work){$Work=Join-Path ([IO.Path]::GetTempPath()) ('DivineLabs-native-sm
 $Work=[IO.Path]::GetFullPath($Work)
 New-Item -ItemType Directory -Force $Work | Out-Null
 $rid=([IO.File]::ReadAllText((Join-Path $Sdk 'runtime/runtime.json')) | ConvertFrom-Json).runtime
+$debug=@(Get-ChildItem -LiteralPath $Sdk -Recurse -Force | Where-Object { $_.Extension -in '.pdb','.dbg','.dSYM' })
+if($debug.Count){throw 'SDK contains unwanted debugging artifacts.'}
 $extension=if($IsWindows){'.exe'}else{''}
 $cli=Join-Path $Sdk "divinepack$extension"
 function Run([string]$Executable,[string[]]$Arguments){
@@ -26,6 +28,7 @@ Run $cli @('build','--config',"$sample/installer.json",'--runtime',$rid,'--outpu
 $runtimeName="DivineLabs.Installer$extension"
 $gui=Get-ChildItem -LiteralPath $built -Recurse -File | Where-Object Name -eq $runtimeName | Select-Object -First 1
 if(-not $gui){throw 'Native installer is missing.'}
+if(@(Get-ChildItem -LiteralPath $built -Recurse -Force | Where-Object { $_.Extension -in '.pdb','.dbg','.dSYM' }).Count){throw 'Built installer contains debugging artifacts.'}
 $target=Join-Path $Work 'application'
 Run $gui.FullName @('--silent','--no-integrations','--dir',$target)
 $receiptFile=Join-Path $target '.divinelabs-installer/receipt.json'

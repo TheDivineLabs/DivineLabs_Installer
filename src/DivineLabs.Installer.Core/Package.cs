@@ -125,6 +125,9 @@ public sealed class Package : IDisposable {
         while ((count = input.Read(buffer)) > 0) { output.Write(buffer, 0, count); hash.AppendData(buffer, 0, count); }
         return new(relative, length, Convert.ToHexString(hash.GetHashAndReset()), mode);
     }
+    public static bool IsRuntimeFile(string relative) => relative != FileName &&
+        !relative.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase) && !relative.EndsWith(".dbg", StringComparison.OrdinalIgnoreCase) &&
+        !relative.Split('/').Any(part => part.EndsWith(".dSYM", StringComparison.OrdinalIgnoreCase));
     public static IEnumerable<string> EnumerateFiles(string root) {
         Paths.NoLinks(root);
         foreach (string entry in Directory.EnumerateFileSystemEntries(root).Order(StringComparer.Ordinal)) {

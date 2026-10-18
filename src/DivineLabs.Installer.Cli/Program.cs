@@ -96,6 +96,7 @@ internal static class Program {
         Directory.CreateDirectory(executableRoot);
         foreach (string source in Package.EnumerateFiles(runtimeDirectory)) {
             string relative = Path.GetRelativePath(runtimeDirectory, source).Replace('\\', '/');
+            if (!Package.IsRuntimeFile(relative)) continue;
             string destination = Paths.Inside(executableRoot, relative); Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(source, destination);
             if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(destination, File.GetUnixFileMode(source));
         }

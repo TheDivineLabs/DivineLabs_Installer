@@ -78,7 +78,7 @@ public sealed class Engine(IPlatformServices platform, string? workRoot = null) 
                 foreach (string source in Package.EnumerateFiles(runtimeSource)) {
                     cancel.ThrowIfCancellationRequested();
                     string relative = Path.GetRelativePath(runtimeSource, source).Replace('\\', '/');
-                    if (relative == Package.FileName || relative.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".dbg", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!Package.IsRuntimeFile(relative)) continue;
                     relative = Paths.RuntimeDirectory + "/" + relative; string destination = Paths.Inside(stage, relative);
                     Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(source, destination);
                     if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(destination, File.GetUnixFileMode(source));
