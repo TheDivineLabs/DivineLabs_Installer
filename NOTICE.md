@@ -16,3 +16,5 @@ SkiaSharp and native graphics dependencies retain their respective upstream lice
 See pinned packages.lock.json files and upstream NuGet packages for dependency notices.
 
 Source: https://github.com/TheDivineLabs/DivineLabs_Installer
+
+MicroCom.Runtime (copyright Nikita Tsukanov) is MIT licensed; see assets/licenses/MicroCom-MIT.txt.
