@@ -59,6 +59,5 @@
   "dataDirectories": [
     "data",
     "logs"
-  ],
-  "template": "divinelabs-classic"
+  ]
 }
