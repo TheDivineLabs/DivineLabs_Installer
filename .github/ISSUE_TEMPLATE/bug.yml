@@ -1,0 +1,24 @@
+name: Bug report
+description: Report a reproducible packaging or installation problem.
+title: "[Bug]: "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: SDK version and OS / architecture
+      placeholder: 0.1.1, Windows 11 x64
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps, expected result and actual result
+      description: Include the command and a minimal config with private paths removed.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant error output
+      description: Remove tokens, personal data and proprietary payloads.
+      render: text

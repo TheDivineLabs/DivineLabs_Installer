@@ -93,9 +93,30 @@ public sealed class MainWindow : Window {
         lang.SelectionChanged += (_, _) => { string value = lang.SelectedIndex == 1 ? "ru" : "en"; if (value != language) { SaveTarget(); language = value; Build(); } }; header.Children.Add(Place(lang, 1));
         var theme = new ComboBox { ItemsSource = new[] { T("☼  Light", "☼  Светлая"), T("☾  Dark", "☾  Тёмная") }, SelectedIndex = dark ? 1 : 0, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
         theme.SelectionChanged += (_, _) => { bool value = theme.SelectedIndex == 1; if (value != dark) { SaveTarget(); dark = value; Build(); } }; header.Children.Add(Place(theme, 3));
-        var minimize = Button("−", () => WindowState = WindowState.Minimized); minimize.Classes.Add("chrome"); header.Children.Add(Place(minimize, 5));
-        var maximize = Button("□", () => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized); maximize.Classes.Add("chrome"); header.Children.Add(Place(maximize, 6));
-        var close = Button("×", ConfirmCancel); close.Classes.Add("chrome"); header.Children.Add(Place(close, 7));
+        Button Caption(string label, string geometry, Action action, bool rounded = false) {
+            var glyph = new APath { Width = 12, Height = 12, Stretch = Stretch.Uniform,
+                Data = Geometry.Parse(geometry), Stroke = text, StrokeThickness = 1.2,
+                StrokeLineCap = rounded ? PenLineCap.Round : PenLineCap.Flat, StrokeJoin = PenLineJoin.Round };
+            var button = Button("", action); button.Content = glyph; button.Classes.Add("chrome");
+            Avalonia.Automation.AutomationProperties.SetName(button, label); ToolTip.SetTip(button, label);
+            return button;
+        }
+        var minimize = Caption(T("Minimize", "Свернуть"), "M1,7 L13,7", () => WindowState = WindowState.Minimized);
+        minimize.Content = new Border { Width = 12, Height = 1.2, Background = text }; header.Children.Add(Place(minimize, 5));
+        var maximize = Caption(T("Maximize", "Развернуть"), "M1,1 H13 V13 H1 Z", () => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized);
+        void UpdateMaximize() {
+            bool restored = WindowState == WindowState.Maximized;
+            ((APath)maximize.Content!).Data = Geometry.Parse(restored ? "M4,1 H13 V10 H10 M1,4 H10 V13 H1 Z" : "M1,1 H13 V13 H1 Z");
+            string label = restored ? T("Restore", "Восстановить") : T("Maximize", "Развернуть");
+            Avalonia.Automation.AutomationProperties.SetName(maximize, label); ToolTip.SetTip(maximize, label);
+        }
+        UpdateMaximize();
+        // Bind the glyph to this window without retaining headers replaced by language/theme changes.
+        maximize.AttachedToVisualTree += (_, _) => PropertyChanged += OnWindowState;
+        maximize.DetachedFromVisualTree += (_, _) => PropertyChanged -= OnWindowState;
+        void OnWindowState(object? sender, AvaloniaPropertyChangedEventArgs e) { if (e.Property == WindowStateProperty) UpdateMaximize(); }
+        header.Children.Add(Place(maximize, 6));
+        header.Children.Add(Place(Caption(T("Close", "Закрыть"), "M1,1 L13,13 M13,1 L1,13", ConfirmCancel, rounded: true), 7));
         header.PointerPressed += (_, e) => { if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is Control source && !source.GetVisualAncestors().Any(a => a is Avalonia.Controls.Button or ComboBox)) BeginMoveDrag(e); };
         return new Border { BorderBrush = line, BorderThickness = new(0, 0, 0, 1), Child = header };
     }

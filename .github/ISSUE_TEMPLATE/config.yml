@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Configuration guide
+    url: https://github.com/TheDivineLabs/DivineLabs_Installer/blob/main/docs/configuration.md
+    about: Config fields, paths, branding and user data.

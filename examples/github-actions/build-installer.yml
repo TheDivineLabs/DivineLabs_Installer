@@ -1,0 +1,34 @@
+# Copy into YOUR application repository as .github/workflows/installer.yml.
+name: Package installers
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  installer:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025, runtime: win-x64 }
+          - { os: macos-15, runtime: osx-arm64 }
+          - { os: ubuntu-22.04, runtime: linux-x64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      # Add your normal application build here, producing files referenced in installer.json.
+      - uses: TheDivineLabs/DivineLabs_Installer@main
+        id: setup
+        with:
+          config: installer.json
+          runtime: ${{ matrix.runtime }}
+          output: installer-output
+          sdk-version: v0.1.1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.runtime }}
+          path: ${{ steps.setup.outputs.archive }}
+          if-no-files-found: error
+# For reproducible production workflows pin actions to reviewed full commit SHAs.

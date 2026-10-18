@@ -1,0 +1,37 @@
+name: Installer action
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['action.yml', 'scripts/build-action.ps1', '.github/workflows/action.yml']
+  pull_request:
+    paths: ['action.yml', 'scripts/build-action.ps1', '.github/workflows/action.yml']
+permissions:
+  contents: read
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025, runtime: win-x64 }
+          - { os: windows-11-arm, runtime: win-arm64 }
+          - { os: macos-15-intel, runtime: osx-x64 }
+          - { os: macos-15, runtime: osx-arm64 }
+          - { os: ubuntu-22.04, runtime: linux-x64 }
+          - { os: ubuntu-22.04-arm, runtime: linux-arm64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        id: installer
+        with:
+          config: examples/hello/installer.json
+          runtime: ${{ matrix.runtime }}
+          # Published SDK for bootstrapping; new releases exercise this same wrapper.
+          sdk-version: v0.1.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: action-example-${{ matrix.runtime }}
+          path: ${{ steps.installer.outputs.archive }}
+          if-no-files-found: error

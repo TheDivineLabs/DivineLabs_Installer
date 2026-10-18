@@ -1,0 +1,15 @@
+name: Feature request
+description: Describe a developer workflow that could be easier.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to ship?
+      description: Describe your application, platforms and current obstacle.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: A small example config or CLI command helps.

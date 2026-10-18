@@ -8,3 +8,9 @@ Choose proportional checks: file transactions need focused failure/recovery cont
 documentation needs reference review. Tests use isolated temporary directories and --no-integrations.
 Do not launch game/application clients or install into actual user application folders during tests.
 Never claim OS acceptance before its native build and smoke check pass. Preserve third-party notices.
+
+## Start here
+
+Read the [build commands](README.md#build-and-verify), [config contract](docs/configuration.md) and [roadmap](docs/ROADMAP.md).
+For documentation languages see [translation guidance](docs/i18n/CONTRIBUTING.md).
+The Action wrapper has its own six-runner workflow using published SDKs, without recompiling the application.

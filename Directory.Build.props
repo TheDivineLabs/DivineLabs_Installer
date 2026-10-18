@@ -1,6 +1,6 @@
 <Project><PropertyGroup>
 <TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
-<LangVersion>latest</LangVersion><Version>0.1.0</Version><Authors>DivineLabs</Authors><Company>DivineLabs</Company>
+<LangVersion>latest</LangVersion><Version>0.1.1</Version><Authors>DivineLabs</Authors><Company>DivineLabs</Company>
 <RepositoryUrl>https://github.com/TheDivineLabs/DivineLabs_Installer</RepositoryUrl>
 <Deterministic>true</Deterministic><ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 <IsAotCompatible>true</IsAotCompatible><JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>

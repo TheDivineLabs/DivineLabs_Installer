@@ -1,63 +1,85 @@
-# DivineLabs Installer
+<div align="center">
+<img src="assets/DivineLabs.svg" width="72" height="72" alt="DivineLabs">
+<h1>DivineLabs Installer</h1>
+<p><strong>Your app. Your branding. One config.</strong></p>
+<p>Native desktop installers for Windows, macOS and Linux.<br>Avalonia + .NET Native AOT · Open source · MIT</p>
 
-A config-driven installer toolkit built with **Avalonia 12 + .NET 10 Native AOT**.
-Windows, macOS and Linux; x64 and ARM64. MIT licensed.
+[![Build](https://github.com/TheDivineLabs/DivineLabs_Installer/actions/workflows/build.yml/badge.svg)](https://github.com/TheDivineLabs/DivineLabs_Installer/actions/workflows/build.yml)
+[![Version](https://img.shields.io/github/v/release/TheDivineLabs/DivineLabs_Installer?include_prereleases&color=6658e8)](https://github.com/TheDivineLabs/DivineLabs_Installer/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-6658e8)](LICENSE)
 
-The interface follows DivineLabs Idle Slayer's maintenance-window design: branded cover,
-step navigation, license acceptance, options, progress and matching uninstall flow.
-English/Russian and light/dark themes are included. No game artwork is bundled.
+[Website](https://thedivinelabs.github.io/installer/) · [Download SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1) · [Configuration](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Issues](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
 
-![Installer welcome](docs/images/welcome.png)
+**English** · [Русский](README.ru.md) · [Deutsch](docs/i18n/README.de.md) · [Español](docs/i18n/README.es.md) · [简体中文](docs/i18n/README.zh-CN.md)
+</div>
 
-**Initial version: 0.1.0.** No .NET installation or WebView is needed on destination machines;
-OS/native graphics dependencies still apply. Native AOT does not make every binary a single file.
+![Installer welcome, rendered from the application](docs/images/welcome.png)
 
-## Quick start
+<details><summary>Dark theme</summary>
 
-Download your platform SDK from a successful **Build and verify** workflow artifact.
-Extract it; keep `runtime/` alongside `divinepack`.
+![Installer dark theme](docs/images/welcome-dark.png)
+
+</details>
+
+Package your existing application without integrating another SDK into its code.
+Change name, payload, entry point, cover, icon and license in JSON; the same UI handles setup,
+updates and removal. The interface follows DivineLabs Idle Slayer's maintenance design.
+No game artwork is bundled.
+
+- **Six native targets:** Windows, macOS and Linux; x64 and ARM64.
+- **No .NET or WebView installation** on destination machines. Native OS/graphics dependencies still apply.
+- **Owned-file transactions:** SHA-256 checks, rollback, interrupted-process recovery and retained user data.
+- **Developer tools:** native CLI, editor schema, runnable example and GitHub Action without a .NET toolchain.
+- **Interface:** English/Russian, light/dark themes, matching setup and uninstall pages.
+
+Documentation is available in five languages; the interface currently supports **English and Russian**.
+This is an early **0.1.x preview**. See delivery limits below before adopting it.
+
+## Download
+
+Choose the SDK for the computer running `divinepack`. Extract it; keep `runtime/` beside the CLI.
+
+| Platform | x64 | ARM64 |
+|---|---|---|
+| Windows | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-win-x64.zip) | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-win-arm64.zip) |
+| macOS | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-osx-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-osx-arm64.tar.gz) |
+| Linux | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-linux-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-linux-arm64.tar.gz) |
+
+[Release notes and SHA256SUMS.txt](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1).
+SDK archives contain the builder; generated installer archives are separate output.
+
+## First installer in three commands
 
 ```sh
-divinepack init --dir my-installer
-# Put your application build in application/ and edit installer.json.
-divinepack validate --config my-installer/installer.json
-divinepack build --config my-installer/installer.json --runtime win-x64 --output my-output
+./divinepack init --dir my-installer
+./divinepack validate --config my-installer/installer.json
+./divinepack build --config my-installer/installer.json --runtime linux-x64 --output my-output
 ```
 
-Use `divinepack.exe` on Windows and `./divinepack` when it is not on your shell's PATH.
-A different target requires its prebuilt native runtime via `--runtime-dir`.
-Application developers need no C#, Avalonia, .NET SDK or embedded application SDK.
-`init` creates a Windows command-script and Unix shell-script demo for all six targets.
+This creates a working demo. In PowerShell use `.\divinepack.exe` and `--runtime win-x64`;
+on macOS choose `osx-arm64` or `osx-x64`. Then replace demo files in `application/` and edit
+`installer.json`. No C#, Avalonia or .NET SDK is needed.
 
-```json
-{
-  "schemaVersion": 1,
-  "id": "com.example.app",
-  "name": "My Application",
-  "publisher": "Example",
-  "version": "1.0.0",
-  "description": "Everything you need to get started.",
-  "applications": {
-    "win-x64": { "source": "dist/windows", "entryPoint": "MyApp.exe" },
-    "osx-arm64": { "source": "dist/macos", "entryPoint": "MyApp.app/Contents/MacOS/MyApp" },
-    "linux-x64": { "source": "dist/linux", "entryPoint": "myapp" }
-  },
-  "branding": { "icon": "branding/icon.png", "cover": "branding/cover.png", "accent": "#6658E8" },
-  "license": "LICENSE.txt",
-  "dataDirectories": ["data", "logs"]
-}
+[Runnable example](examples/hello/installer.json) · [Config reference](docs/configuration.md) · [Troubleshooting](docs/troubleshooting.md)
+
+## Ship from GitHub Actions
+
+```yaml
+- uses: TheDivineLabs/DivineLabs_Installer@main
+  id: installer
+  with:
+    config: installer.json
+    runtime: win-x64
+    sdk-version: v0.1.1
+- uses: actions/upload-artifact@v4
+  with:
+    name: installer
+    path: ${{ steps.installer.outputs.archive }}
 ```
 
-Paths are relative to the config. List only architectures you actually ship.
-`branding.showFrameworkBranding: false` hides the template logo and attribution in the UI.
-PNG is recommended for branding. The reference cover slot is 330×740.
-The JSON schema provides editor completion. `links` contains optional `{ "label", "url" }`
-HTTP(S) links; `language` accepts `en` or `ru`.
-
-`dataDirectories` are reserved for runtime-created user files; do not ship payload files there.
-Updates refuse to change these definitions without an explicit migration.
-`executableFiles` marks extra Unix executables when packaging on a host that cannot preserve
-Unix modes. The main entry point is automatically marked executable.
+Run after your application's build on a matching runner. Downloads are checked against release checksums.
+For reproducible production workflows pin actions to reviewed commit SHAs.
+[Copyable workflow](examples/github-actions/build-installer.yml) · [Inputs and runner matrix](docs/github-actions.md)
 
 ## Output and integration
 
@@ -131,4 +153,4 @@ Windows renders setup and uninstall pages in both themes/languages without openi
 
 `Core` contains portable contracts/transactions; `Platforms` implements system integration;
 `Desktop` is the Avalonia shell; `Cli` is the native `divinepack` builder.
-See [CONTRIBUTING.md](CONTRIBUTING.md), [NOTICE.md](NOTICE.md) and [README.ru.md](README.ru.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md), [NOTICE.md](NOTICE.md) and the [roadmap](docs/ROADMAP.md).

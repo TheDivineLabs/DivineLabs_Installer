@@ -1,0 +1,35 @@
+name: DivineLabs Installer
+description: Build native installers from JSON using a verified prebuilt SDK; no .NET SDK required.
+author: DivineLabs
+branding:
+  icon: package
+  color: purple
+inputs:
+  config:
+    description: Application installer.json relative to the workspace
+    required: true
+  runtime:
+    description: Target RID; must match runner OS and architecture
+    required: true
+  output:
+    description: New or empty output directory
+    default: installer-output
+  sdk-version:
+    description: Published native SDK release tag
+    default: v0.1.1
+outputs:
+  archive:
+    description: Absolute path to the generated installer archive
+    value: ${{ steps.build.outputs.archive }}
+runs:
+  using: composite
+  steps:
+    - id: build
+      shell: pwsh
+      env:
+        DIVINE_CONFIG: ${{ inputs.config }}
+        DIVINE_RUNTIME: ${{ inputs.runtime }}
+        DIVINE_OUTPUT: ${{ inputs.output }}
+        DIVINE_SDK_VERSION: ${{ inputs.sdk-version }}
+        DIVINE_ACTION_PATH: ${{ github.action_path }}
+      run: '& "$env:DIVINE_ACTION_PATH/scripts/build-action.ps1" -Config $env:DIVINE_CONFIG -Runtime $env:DIVINE_RUNTIME -Output $env:DIVINE_OUTPUT -SdkVersion $env:DIVINE_SDK_VERSION'
