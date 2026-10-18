@@ -8,6 +8,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/TheDivineLabs/DivineLabs_Installer/main/schemas/installer.schema.json",
   "schemaVersion": 1,
+  "template": "divinelabs-classic",
   "id": "com.example.myapp",
   "name": "My App",
   "publisher": "Example",
@@ -30,6 +31,7 @@ Use [the runnable Hello example](../examples/hello/installer.json) to try the to
 
 | Field | Purpose |
 |---|---|
+| `template` | Default `divinelabs-classic`; must match the selected native runtime. Core treats this as metadata. |
 | `id` | Stable ownership identity, 3–128 letters/digits/dots/hyphens; starts with letter/digit. Keep it unchanged across updates. |
 | `name`, `publisher`, `version` | Required display and installation metadata. |
 | `description` | Welcome text supplied by the developer. |

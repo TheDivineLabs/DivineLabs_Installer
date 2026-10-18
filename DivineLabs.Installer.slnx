@@ -4,9 +4,15 @@
     <Project Path="src/DivineLabs.Installer.Core/DivineLabs.Installer.Core.csproj" />
     <Project Path="src/DivineLabs.Installer.Desktop/DivineLabs.Installer.Desktop.csproj" />
     <Project Path="src/DivineLabs.Installer.Platforms/DivineLabs.Installer.Platforms.csproj" />
+    <Project Path="src/DivineLabs.Installer.Components/DivineLabs.Installer.Components.csproj" />
+    <Project Path="src/DivineLabs.Installer.Templates.Classic/DivineLabs.Installer.Templates.Classic.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DivineLabs.Installer.Tests/DivineLabs.Installer.Tests.csproj" />
     <Project Path="tests/DivineLabs.Installer.Visuals/DivineLabs.Installer.Visuals.csproj" />
+  </Folder>
+  <Folder Name="/examples/">
+    <Project Path="examples/embedded-launcher/EmbeddedLauncher.csproj"/>
+    <Project Path="examples/classic-host/ClassicHost.csproj"/>
   </Folder>
 </Solution>

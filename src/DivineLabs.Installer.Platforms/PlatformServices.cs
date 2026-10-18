@@ -5,7 +5,7 @@ using DivineLabs.Installer.Core;
 using Microsoft.Win32;
 namespace DivineLabs.Installer.Platforms;
 
-public sealed class PlatformServices(string? dataHomeOverride = null, string? desktopOverride = null) : IPlatformServices {
+public sealed class PlatformServices(string? dataHomeOverride = null, string? desktopOverride = null) : IPlatformServices, IInstallationLocator {
     public static string HostExecutable => OperatingSystem.IsWindows() ? "DivineLabs.Installer.exe" : "DivineLabs.Installer";
     private static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     private string DataHome => dataHomeOverride ?? ( Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { Length: > 0 } path && Path.IsPathRooted(path) ? path : Path.Combine(Home, ".local", "share"));

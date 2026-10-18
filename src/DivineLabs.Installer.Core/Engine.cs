@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 namespace DivineLabs.Installer.Core;
 
-public sealed class Engine(IPlatformServices platform, string? workRoot = null) {
+public sealed partial class Engine(IPlatformServices platform, string? workRoot = null) : IInstallerEngine {
     private readonly string scratch = workRoot ?? Path.Combine(Path.GetTempPath(), "DivineLabsInstaller");
     private const string OwnerPath = Paths.StateDirectory + "/owner.json";
     private const string Transaction = Paths.StateDirectory + "/transaction";

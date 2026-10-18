@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>packages.md</PackageReadmeFile>
+    <PackageIcon>DivineLabs.png</PackageIcon>
+    <PackageProjectUrl>https://thedivinelabs.github.io/installer/</PackageProjectUrl>
+    <PackageTags>installer;nativeaot;divinelabs;cross-platform</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)docs/packages.md" Pack="true" PackagePath="/"/>
+    <None Include="$(MSBuildThisFileDirectory)assets/DivineLabs.png" Pack="true" PackagePath="/"/>
+  </ItemGroup>
+</Project>

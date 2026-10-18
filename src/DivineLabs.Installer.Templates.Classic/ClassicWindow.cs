@@ -8,31 +8,31 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using DivineLabs.Installer.Core;
-using DivineLabs.Installer.Platforms;
+using DivineLabs.Installer.Components;
 using APath = Avalonia.Controls.Shapes.Path;
-namespace DivineLabs.Installer.Desktop;
+namespace DivineLabs.Installer.Templates.Classic;
 
-public sealed class MainWindow : Window {
-    private readonly Session session;
+public sealed class ClassicWindow : Window {
+    private readonly ClassicSession session;
     private readonly Dictionary<string, Bitmap> images = [];
     private string language, target, status = "", error = "";
     private bool dark, accepted, desktopShortcut = true, menuShortcut = true, removeData, busy, succeeded, allowClose;
     private int page, licenseTab;
     private CancellationTokenSource? cancellation;
-    private TextBox? targetBox;
-    private ProgressBar? progressBar;
-    private TextBlock? statusLabel;
+    private DirectoryPicker? targetBox;
+    private OperationProgressView? operationProgress;
     private Border? overlay;
     private IBrush background = Brushes.White, surface = Brushes.White, line = Brushes.Gray, text = Brushes.Black, muted = Brushes.Gray, white = Brushes.White, accent;
     public int Page => page;
-    public MainWindow(Session session) {
-        this.session = session; language = session.Product.Language; target = session.Target; accent = Brush.Parse(session.Product.Branding.Accent);
+    public ClassicWindow(ClassicSession session) {
+        this.session = session; desktopShortcut = session.Options.DesktopShortcut; menuShortcut = session.Options.MenuShortcut; language = session.Product.Language; target = session.Target; accent = Brush.Parse(session.Product.Branding.Accent);
         Title = session.Product.Name; Width = 1100; Height = 790; MinWidth = 940; MinHeight = 690;
         WindowDecorations = WindowDecorations.None; WindowStartupLocation = WindowStartupLocation.CenterScreen;
         if (Image(session.Product.Branding.Icon) is { } icon) Icon = new WindowIcon(icon);
-        else { using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("DivineLabs.Installer.Icon")!; Icon = new WindowIcon(stream); }
+        else { using var stream = typeof(ClassicWindow).Assembly.GetManifestResourceStream("DivineLabs.Installer.Icon")!; Icon = new WindowIcon(stream); }
         Closing += (_, e) => { if (!allowClose && page != 4) { e.Cancel = true; ConfirmCancel(); } };
         Closed += (_, _) => { foreach (var image in images.Values) image.Dispose(); cancellation?.Dispose(); };
+        Styles.Add(new ClassicTheme());
         Build();
     }
     private string T(string en, string ru) => language == "ru" ? ru : en;
@@ -70,8 +70,8 @@ public sealed class MainWindow : Window {
         line = Brush.Parse(dark ? "#303D50" : "#DEE3ED"); text = Brush.Parse(dark ? "#EEF2F8" : "#1B2638"); muted = Brush.Parse(dark ? "#A4B0C2" : "#667389"); white = Brush.Parse(dark ? "#151D29" : "#FFFFFF");
         RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;
         foreach (var resource in new[] { ("Background", background), ("Surface", surface), ("Line", line), ("Text", text), ("Muted", muted), ("WhiteSurface", white), ("Accent", accent) })
-            Application.Current!.Resources[resource.Item1] = resource.Item2;
-        Application.Current!.Resources["SystemAccentColor"] = Color.Parse(session.Product.Branding.Accent);
+            Resources[resource.Item1] = resource.Item2;
+        Resources["SystemAccentColor"] = Color.Parse(session.Product.Branding.Accent);
         Background = background; targetBox = null;
         var root = Grid(rows: "50,*"); root.Children.Add(Header());
         bool cover = page is 0 or 4;
@@ -136,19 +136,8 @@ public sealed class MainWindow : Window {
     private Control Steps() {
         int[] pages = session.Uninstall ? [0, 2, 3, 4] : [0, 1, 2, 3, 4]; int reached = Array.IndexOf(pages, page);
         string[] titles = session.Uninstall ? [T("Start", "Начало"), T("Options", "Параметры"), T("Uninstall", "Удаление"), T("Done", "Готово")] : [T("Start", "Начало"), T("Licenses", "Лицензии"), T("Options", "Параметры"), T("Install", "Установка"), T("Done", "Готово")];
-        var root = new Grid { MaxWidth = 900 };
-        var track = new Border { Height = 2, Background = line, VerticalAlignment = VerticalAlignment.Top, Margin = new(64, 19, 64, 0) }; root.Children.Add(track);
-        var active = new Border { Height = 2, Background = accent, VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left, Margin = new(64, 19, 0, 0) }; root.Children.Add(active);
-        var cells = Grid(string.Join(",", pages.Select(_ => "*")));
-        for (int i = 0; i < pages.Length; i++) {
-            var column = new StackPanel { Spacing = 10, HorizontalAlignment = HorizontalAlignment.Center };
-            var number = Center(i < reached ? "✓" : (i + 1).ToString(), 16, weight: FontWeight.SemiBold); number.Foreground = i <= reached ? Brushes.White : muted;
-            column.Children.Add(new Border { Width = 38, Height = 38, CornerRadius = new(19), Background = i <= reached ? accent : background, BorderBrush = line, BorderThickness = new(i <= reached ? 0 : 1), Child = number });
-            column.Children.Add(Center(titles[i], 14, i != reached)); cells.Children.Add(Place(column, i));
-        }
-        root.Children.Add(cells);
-        root.SizeChanged += (_, _) => { double edge = root.Bounds.Width / (2 * pages.Length); track.Margin = new(edge, 19, edge, 0); active.Margin = new(edge, 19, 0, 0); active.Width = Math.Max(0, (root.Bounds.Width - edge * 2) * reached / (pages.Length - 1)); };
-        return root;
+        return new StepIndicator { Labels = titles, ActiveIndex = reached, AccentBrush = accent,
+            TrackBrush = line, PageBrush = background, TextBrush = text, MutedBrush = muted };
     }
     private Control Welcome() {
         var panel = new StackPanel { Width = 660, VerticalAlignment = VerticalAlignment.Center };
@@ -183,7 +172,7 @@ public sealed class MainWindow : Window {
         }
         grid.Children.Add(Place(tabs, row: 1));
         string licenseText = session.License;
-        if (licenseTab == 1) { using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("DivineLabs.Installer.LICENSE")!; using var reader = new StreamReader(stream); licenseText = reader.ReadToEnd(); }
+        if (licenseTab == 1) { using var stream = typeof(ClassicWindow).Assembly.GetManifestResourceStream("DivineLabs.Installer.LICENSE")!; using var reader = new StreamReader(stream); licenseText = reader.ReadToEnd(); }
         if (licenseTab == 2) {
             string directory = System.IO.Path.Combine(AppContext.BaseDirectory, "licenses");
             licenseText = Directory.Exists(directory) ? string.Join("\n\n", Directory.GetFiles(directory).Order(StringComparer.Ordinal).Select(file => System.IO.Path.GetFileName(file) + "\n\n" + File.ReadAllText(file))) : T("Component notices are included with the published runtime.", "Лицензии компонентов включены в публикуемый runtime.");
@@ -196,16 +185,14 @@ public sealed class MainWindow : Window {
         var panel = new StackPanel { Margin = new(20, 0), VerticalAlignment = VerticalAlignment.Center };
         panel.Children.Add(Center(session.Uninstall ? T("Review before uninstalling", "Проверим перед удалением") : T("Where should we install?", "Куда установить программу?"), 29, weight: FontWeight.SemiBold));
         var subtitle = Center(session.Uninstall ? T("The application will be removed from this folder.", "Будет удалена программа из этой папки.") : T($"Choose a folder for {session.Product.Name}.", $"Выберите папку для {session.Product.Name}."), 14, true); subtitle.Margin = new(0, 10, 0, 28); panel.Children.Add(subtitle);
-        var row = Grid(session.Uninstall ? "35,18,*" : "35,18,*,14,Auto"); var folder = Text("▰", 35); folder.Foreground = accent; row.Children.Add(folder);
-        targetBox = new TextBox { Text = target, IsReadOnly = session.Uninstall, FontSize = 13, VerticalAlignment = VerticalAlignment.Center }; row.Children.Add(Place(targetBox, 2));
-        if (!session.Uninstall) row.Children.Add(Place(Button(T("Browse", "Изменить"), async () => {
-            var folders = await StorageProvider.OpenFolderPickerAsync(new() { Title = T("Application folder", "Папка программы"), AllowMultiple = false });
-            if (folders.Count > 0 && folders[0].Path.IsFile) { target = folders[0].Path.LocalPath; targetBox.Text = target; }
-        }), 4));
+        var row = Grid("35,18,*"); var folder = Text("▰", 35); folder.Foreground = accent; row.Children.Add(folder);
+        targetBox = new DirectoryPicker { DirectoryPath = target, IsReadOnly = session.Uninstall,
+            BrowseLabel = T("Browse", "Изменить"), PickerTitle = T("Application folder", "Папка программы") };
+        row.Children.Add(Place(targetBox, 2));
         var pathCard = Card(row); pathCard.Background = white; panel.Children.Add(pathCard);
         var hint = Text(session.Uninstall ? T("Only files recorded by this installer will be removed.", "Удаляются только файлы из списка установки.") : T("Existing installations can be updated in place.", "Существующую установку можно обновить в той же папке."), 12, true); hint.Margin = new(4, 12, 4, 22); panel.Children.Add(hint);
         var copies = new StackPanel { Spacing = 8 };
-        foreach (var copy in session.Platform.FindInstallations(session.Product)) {
+        foreach (var copy in session.FindInstallations()) {
             string folderPath = copy.Folder;
             copies.Children.Add(Button($"{copy.Folder}  ·  {copy.Version}", () => { target = folderPath; if (!session.Uninstall) Build(); }));
         }
@@ -215,7 +202,7 @@ public sealed class MainWindow : Window {
             var details = new StackPanel { Spacing = 10 }; details.Children.Add(Text(T("Your progress is kept", "Ваш прогресс сохранится"), 14, weight: FontWeight.SemiBold)); details.Children.Add(Text(T("Settings, logs and unrelated files are preserved by default.", "Настройки, журналы и посторонние файлы по умолчанию сохраняются."), 13, true));
             var check = new CheckBox { Content = T("Remove application data as well", "Полное удаление, включая данные программы"), IsChecked = removeData }; check.IsCheckedChanged += (_, _) => removeData = check.IsChecked == true; details.Children.Add(check); var card = Card(details); card.Background = surface; panel.Children.Add(card);
         } else {
-            if (!OperatingSystem.IsMacOS()) {
+            if (session.Options.Integrations && !OperatingSystem.IsMacOS()) {
                 var desktop = new CheckBox { Content = ShortcutLabel(T("Create a desktop shortcut", "Создать ярлык на рабочем столе"), T("Quick access to the application.", "Быстрый доступ к программе.")), IsChecked = desktopShortcut }; desktop.IsCheckedChanged += (_, _) => desktopShortcut = desktop.IsChecked == true; var card = Card(desktop); card.Margin = new(0, 0, 0, 10); panel.Children.Add(card);
                 var menu = new CheckBox { Content = ShortcutLabel(T("Add to the applications menu", "Добавить в меню приложений"), T("Find the application in the system menu.", "Находите программу среди приложений.")), IsChecked = menuShortcut }; menu.IsCheckedChanged += (_, _) => menuShortcut = menu.IsChecked == true; panel.Children.Add(Card(menu));
             }
@@ -228,11 +215,11 @@ public sealed class MainWindow : Window {
         var panel = new StackPanel { Spacing = 5 }; panel.Children.Add(Text(title, 15)); panel.Children.Add(Text(hint, 12, true)); return panel;
     }
     private Control Progress() {
-        var panel = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 18, Margin = new(20, 0) };
-        panel.Children.Add(Center(session.Uninstall ? T("Removing the application", "Удаляем программу") : T("Installing the application", "Устанавливаем программу"), 30, weight: FontWeight.SemiBold));
-        panel.Children.Add(Center(T("You can cancel; file changes will be rolled back.", "Можно отменить операцию: изменения файлов будут отменены."), 14, true));
-        progressBar = new ProgressBar { Minimum = 0, Maximum = 100, Value = 0, Height = 8, Foreground = accent, Background = surface, Margin = new(0, 16, 0, 0) }; panel.Children.Add(progressBar);
-        statusLabel = Center(status, 13, true); panel.Children.Add(statusLabel); return panel;
+        operationProgress = new OperationProgressView { VerticalAlignment = VerticalAlignment.Center, Margin = new(20, 0),
+            Title = session.Uninstall ? T("Removing the application", "Удаляем программу") : T("Installing the application", "Устанавливаем программу"),
+            Hint = T("You can cancel; file changes will be rolled back.", "Можно отменить операцию: изменения файлов будут отменены."),
+            Detail = status, AccentBrush = accent, SurfaceBrush = surface, TextBrush = text, MutedBrush = muted };
+        return operationProgress;
     }
     private Control Finish() {
         var panel = new StackPanel { Width = 660, VerticalAlignment = VerticalAlignment.Center, Spacing = 18 };
@@ -257,16 +244,18 @@ public sealed class MainWindow : Window {
         return new Border { BorderBrush = line, BorderThickness = new(0, 1, 0, 0), Margin = new(0, 20, 0, 0), Child = row };
     }
     private void UpdateFooter() { if (next != null) { next.IsEnabled = page != 1 || accepted; } }
-    private void SaveTarget() { if (targetBox != null) target = targetBox.Text ?? ""; }
+    private void SaveTarget() { if (targetBox != null) target = targetBox.DirectoryPath; }
     private void Next() { SaveTarget(); if (page == 0) { page = session.Uninstall ? 2 : 1; Build(); } else if (page == 1 && accepted) { page = 2; Build(); } else if (page == 2) _ = Run(); }
     private async Task Run() {
         if (!session.Uninstall && session.PackagePath == null) { error = T("This is a preview. Build an installer with divinepack to install an application.", "Это предварительный просмотр. Соберите установщик через divinepack."); Build(); return; }
         try { target = Paths.Target(target); } catch (Exception ex) { error = ex.Message; Build(); return; }
         error = ""; busy = true; page = 3; cancellation = new(); Build();
-        var progress = new Progress<InstallProgress>(value => { status = value.Detail; if (progressBar != null) progressBar.Value = value.Percent; if (statusLabel != null) statusLabel.Text = value.Detail; });
+        var progress = new Progress<InstallProgress>(value => { status = value.Detail; if (operationProgress != null) { operationProgress.Percent = value.Percent; operationProgress.Detail = value.Detail; } });
         try {
-            var engine = new Engine(session.Platform); var token = cancellation.Token;
-            OperationResult result = await Task.Run(() => session.Uninstall ? engine.Uninstall(target, removeData, progress, token) : engine.Install(session.PackagePath!, target, AppContext.BaseDirectory, new(true, desktopShortcut, menuShortcut), progress, token));
+            var token = cancellation.Token;
+            OperationResult result = session.Uninstall
+                ? await session.Engine.UninstallAsync(new(target, removeData), progress, token)
+                : await session.Engine.InstallAsync(new(session.PackagePath!, target, session.RuntimeDirectory, new(session.Options.Integrations, desktopShortcut, menuShortcut)), progress, token);
             succeeded = true; error = string.Join("\n", result.Warnings);
         } catch (OperationCanceledException) { error = T("Cancelled. File changes were rolled back.", "Операция отменена. Изменения файлов восстановлены."); }
         catch (Exception ex) { error = ex.Message; }

@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><IsPackable>true</IsPackable><Description>DivineLabs Classic setup and uninstall template for Avalonia, based on the Idle Slayer design.</Description></PropertyGroup>
+<ItemGroup><ProjectReference Include="../DivineLabs.Installer.Core/DivineLabs.Installer.Core.csproj"/><ProjectReference Include="../DivineLabs.Installer.Components/DivineLabs.Installer.Components.csproj"/><PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)"/><EmbeddedResource Include="../../assets/DivineLabs.png" LogicalName="DivineLabs.Installer.Icon"/><EmbeddedResource Include="../../LICENSE" LogicalName="DivineLabs.Installer.LICENSE"/></ItemGroup>
+</Project>

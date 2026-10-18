@@ -6,7 +6,7 @@
 
 Native Installer für Windows, macOS und Linux, jeweils x64 und ARM64. Avalonia + .NET Native AOT, MIT-Lizenz.
 
-[SDK 0.1.1 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
+[SDK 0.2.0 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
 
 ![DivineLabs Installer](../images/welcome.png)
 
@@ -35,3 +35,7 @@ Anwendungscode braucht weder C# noch Avalonia oder ein zusätzliches SDK. Pfade 
 Die Oberfläche unterstützt derzeit Englisch und Russisch sowie helle/dunkle Themes. Übersetzte Dokumentation erweitert die Sprachen der Oberfläche nicht. Installer-Archive müssen vor dem Start entpackt werden. Diese Vorschau erzeugt keine einzelnen selbstentpackenden EXEs, MSI-, PKG-, DEB- oder RPM-Pakete. Keine automatische Update-Verteilung oder integrierte Signierung. Symlinks werden abgelehnt. Native Grafikabhängigkeiten des Betriebssystems bleiben erforderlich.
 
 [MIT](../../LICENSE) · [Third-party notices](../../NOTICE.md)
+
+## Engine und eigene Oberfläche
+
+Core stellt `IInstallerEngine` bereit; Platforms übernimmt optionale Betriebssystemintegration. Components enthält wiederverwendbare Avalonia-Steuerelemente. Templates.Classic liefert das fertige Design. Die vier .NET-10-Bibliotheken werden als `.nupkg` veröffentlicht; kein nuget.org-Release wird vorausgesetzt. [Integration (English)](../embedding.md) · [API (English)](../api.md).

@@ -59,6 +59,7 @@ public static partial class Paths {
         return full;
     }
     public static void Validate(ProductConfig config) {
+        if (string.IsNullOrWhiteSpace(config.Template)) throw new InvalidDataException("Template identity is required.");
         if (config.SchemaVersion != 1 || !Identifier().IsMatch(config.Id)) throw new InvalidDataException("schemaVersion must be 1 and id must be a stable reverse-domain identifier.");
         foreach (string label in new[] { config.Name, config.Publisher, config.Version })
             if (string.IsNullOrWhiteSpace(label) || label.Any(char.IsControl)) throw new InvalidDataException("name, publisher and version are required, single-line values.");

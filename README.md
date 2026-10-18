@@ -2,13 +2,13 @@
 <img src="assets/DivineLabs.svg" width="72" height="72" alt="DivineLabs">
 <h1>DivineLabs Installer</h1>
 <p><strong>Your app. Your branding. One config.</strong></p>
-<p>Native desktop installers for Windows, macOS and Linux.<br>Avalonia + .NET Native AOT · Open source · MIT</p>
+<p>An installation engine, reusable UI and ready-made templates.<br>Avalonia + .NET Native AOT · Open source · MIT</p>
 
 [![Build](https://github.com/TheDivineLabs/DivineLabs_Installer/actions/workflows/build.yml/badge.svg)](https://github.com/TheDivineLabs/DivineLabs_Installer/actions/workflows/build.yml)
 [![Version](https://img.shields.io/github/v/release/TheDivineLabs/DivineLabs_Installer?include_prereleases&color=6658e8)](https://github.com/TheDivineLabs/DivineLabs_Installer/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-6658e8)](LICENSE)
 
-[Website](https://thedivinelabs.github.io/installer/) · [Download SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1) · [Configuration](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Issues](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
+[Website](https://thedivinelabs.github.io/installer/) · [Download SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Configuration](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Issues](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
 
 **English** · [Русский](README.ru.md) · [Deutsch](docs/i18n/README.de.md) · [Español](docs/i18n/README.es.md) · [简体中文](docs/i18n/README.zh-CN.md)
 </div>
@@ -33,7 +33,19 @@ No game artwork is bundled.
 - **Interface:** English/Russian, light/dark themes, matching setup and uninstall pages.
 
 Documentation is available in five languages; the interface currently supports **English and Russian**.
-This is an early **0.1.x preview**. See delivery limits below before adopting it.
+This is an early **0.2.0 preview**. See delivery limits below before adopting it.
+
+## Choose your integration
+
+| Use case | Start here |
+|---|---|
+| Build an installer from JSON | [Native SDK and three-command quick start](#download) |
+| Embed installation in your launcher | [Public engine API](docs/api.md) + [embedding guide](docs/embedding.md) |
+| Compose your own Avalonia screens | [Components and custom launcher example](examples/embedded-launcher/) |
+| Use the current design in your host | [DivineLabs Classic template](examples/classic-host/) |
+
+Core, Platforms, Components and Templates.Classic are separate packable libraries.
+[Architecture](docs/architecture.md) · [Download .nupkg libraries](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0)
 
 ## Download
 
@@ -41,11 +53,11 @@ Choose the SDK for the computer running `divinepack`. Extract it; keep `runtime/
 
 | Platform | x64 | ARM64 |
 |---|---|---|
-| Windows | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-win-x64.zip) | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-win-arm64.zip) |
-| macOS | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-osx-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-osx-arm64.tar.gz) |
-| Linux | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-linux-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.1.1/DivineLabs-Installer-linux-arm64.tar.gz) |
+| Windows | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-win-x64.zip) | [SDK ZIP](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-win-arm64.zip) |
+| macOS | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-osx-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-osx-arm64.tar.gz) |
+| Linux | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-linux-x64.tar.gz) | [SDK TAR.GZ](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/download/v0.2.0/DivineLabs-Installer-linux-arm64.tar.gz) |
 
-[Release notes and SHA256SUMS.txt](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1).
+[Release notes and SHA256SUMS.txt](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0).
 SDK archives contain the builder; generated installer archives are separate output.
 
 ## First installer in three commands
@@ -58,7 +70,7 @@ SDK archives contain the builder; generated installer archives are separate outp
 
 This creates a working demo. In PowerShell use `.\divinepack.exe` and `--runtime win-x64`;
 on macOS choose `osx-arm64` or `osx-x64`. Then replace demo files in `application/` and edit
-`installer.json`. No C#, Avalonia or .NET SDK is needed.
+`installer.json`. Config-only packaging needs no C#, Avalonia or .NET SDK. In-process embedding uses .NET 10 libraries.
 
 [Runnable example](examples/hello/installer.json) · [Config reference](docs/configuration.md) · [Troubleshooting](docs/troubleshooting.md)
 
@@ -70,7 +82,7 @@ on macOS choose `osx-arm64` or `osx-x64`. Then replace demo files in `applicatio
   with:
     config: installer.json
     runtime: win-x64
-    sdk-version: v0.1.1
+    sdk-version: v0.2.0
 - uses: actions/upload-artifact@v4
   with:
     name: installer
@@ -151,6 +163,6 @@ CI covers six OS/CPU targets: contracts, Native AOT SDK publication, configurati
 bundle construction, installation and the **installed** uninstaller, including data retention.
 Windows renders setup and uninstall pages in both themes/languages without opening a desktop window.
 
-`Core` contains portable contracts/transactions; `Platforms` implements system integration;
-`Desktop` is the Avalonia shell; `Cli` is the native `divinepack` builder.
+`Core` exposes the public engine; `Platforms` provides OS integration; `Components` supplies reusable UI;
+`Templates.Classic` provides the complete design; `Desktop` and `Cli` are hosts.
 See [CONTRIBUTING.md](CONTRIBUTING.md), [NOTICE.md](NOTICE.md) and the [roadmap](docs/ROADMAP.md).

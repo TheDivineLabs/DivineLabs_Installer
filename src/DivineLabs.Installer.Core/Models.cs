@@ -17,6 +17,7 @@ public sealed record ProductLink(string Label, string Url);
 public sealed record ProductConfig {
     [JsonPropertyName("$schema")] public string? Schema { get; init; }
     public int SchemaVersion { get; init; } = 1;
+    public string Template { get; init; } = "divinelabs-classic";
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public string Publisher { get; init; } = "";
@@ -41,7 +42,7 @@ public sealed record JournalItem(string Path, bool HadOriginal, string? NewHash)
 public sealed record TransactionJournal(string ProductId, string State, Receipt? PreviousReceipt, List<JournalItem> Items);
 public sealed record InstallOptions(bool Integrations = true, bool DesktopShortcut = true, bool MenuShortcut = true);
 public sealed record InstallProgress(string Phase, string Detail, int Percent);
-public sealed record RuntimeInfo(int FormatVersion, string Runtime, string EntryPoint, bool NativeAot);
+public sealed record RuntimeInfo(int FormatVersion, string Runtime, string EntryPoint, bool NativeAot, string Template = "divinelabs-classic");
 public sealed record OperationResult(List<string> Warnings);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true,

@@ -11,7 +11,7 @@ internal static class Program {
     public static int Main(string[] args) {
         try {
             if (args.Length == 0 || args[0] is "--help" or "help") { Help(); return 0; }
-            if (args[0] == "--version") { Console.WriteLine("DivineLabs Installer 0.1.1"); return 0; }
+            if (args[0] == "--version") { Console.WriteLine($"DivineLabs Installer {typeof(Engine).Assembly.GetName().Version?.ToString(3)}"); return 0; }
             string command = args[0]; var options = Options(args.Skip(1).ToArray());
             string Get(string name, string? fallback = null) => options.TryGetValue(name, out string? value) ? value ?? throw new ArgumentException($"{name} requires a value.") : fallback ?? throw new ArgumentException($"Missing {name}.");
             switch (command) {
@@ -35,12 +35,14 @@ internal static class Program {
                 case "inspect": { using var package = new Package(Get("--package")); Console.WriteLine(JsonSerializer.Serialize(package.Manifest, InstallerJson.Default.PackageManifest)); break; }
                 case "install": {
                     string? runtime = options.ContainsKey("--runtime-dir") ? Get("--runtime-dir") : null;
-                    var result = new Engine(new PlatformServices()).Install(Get("--package"), Get("--dir"), runtime,
-                        new(!options.ContainsKey("--no-integrations"), !options.ContainsKey("--no-desktop"), !options.ContainsKey("--no-menu")), new ConsoleProgress());
+                    IInstallerEngine engine = new Engine(new PlatformServices());
+                    var result = engine.InstallAsync(new(Get("--package"), Get("--dir"), runtime,
+                        new(!options.ContainsKey("--no-integrations"), !options.ContainsKey("--no-desktop"), !options.ContainsKey("--no-menu"))), new ConsoleProgress()).GetAwaiter().GetResult();
                     foreach (string warning in result.Warnings) Console.Error.WriteLine("Warning: " + warning); break;
                 }
                 case "uninstall": {
-                    var result = new Engine(new PlatformServices()).Uninstall(Get("--dir"), options.ContainsKey("--remove-data"), new ConsoleProgress());
+                    IInstallerEngine engine = new Engine(new PlatformServices());
+                    var result = engine.UninstallAsync(new(Get("--dir"), options.ContainsKey("--remove-data")), new ConsoleProgress()).GetAwaiter().GetResult();
                     foreach (string warning in result.Warnings) Console.Error.WriteLine("Warning: " + warning); break;
                 }
                 default: throw new ArgumentException("Unknown command. Run divinepack --help.");
@@ -84,6 +86,10 @@ internal static class Program {
         if (runtime.FormatVersion != 1 || runtime.Runtime != rid || !runtime.NativeAot) throw new InvalidDataException("Use a matching prebuilt Native AOT runtime.");
         Paths.Relative(runtime.EntryPoint);
         if (!File.Exists(Paths.Inside(runtimeDirectory, runtime.EntryPoint))) throw new IOException("Runtime executable is missing.");
+        using (var configInput = File.OpenRead(config)) {
+            var product = JsonSerializer.Deserialize(configInput, InstallerJson.Default.ProductConfig) ?? throw new InvalidDataException("Empty config.");
+            if (product.Template != runtime.Template) throw new InvalidDataException($"Config template {product.Template} does not match runtime template {runtime.Template}.");
+        }
         output = Path.GetFullPath(output); Paths.NoLinks(output);
         if (output.StartsWith(runtimeDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Output cannot be inside runtime source.");
         if (Directory.Exists(output) && Directory.EnumerateFileSystemEntries(output).Any()) throw new IOException("Choose a new, empty output directory.");
@@ -103,7 +109,7 @@ internal static class Program {
         File.Move(pack, Path.Combine(executableRoot, Package.FileName));
         if (rid.StartsWith("osx-")) {
             string E(string s) => SecurityElement.Escape(s) ?? "";
-            File.WriteAllText(Path.Combine(bundle, "Contents", "Info.plist"), $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>CFBundleExecutable</key><string>{E(runtime.EntryPoint)}</string><key>CFBundleIdentifier</key><string>{E(manifest.Product.Id)}.installer</string><key>CFBundleName</key><string>{E(manifest.Product.Name)} Installer</string><key>CFBundlePackageType</key><string>APPL</string><key>CFBundleShortVersionString</key><string>0.1.1</string><key>NSHighResolutionCapable</key><true/></dict></plist>");
+            File.WriteAllText(Path.Combine(bundle, "Contents", "Info.plist"), $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>CFBundleExecutable</key><string>{E(runtime.EntryPoint)}</string><key>CFBundleIdentifier</key><string>{E(manifest.Product.Id)}.installer</string><key>CFBundleName</key><string>{E(manifest.Product.Name)} Installer</string><key>CFBundlePackageType</key><string>APPL</string><key>CFBundleShortVersionString</key><string>{typeof(Engine).Assembly.GetName().Version?.ToString(3)}</string><key>NSHighResolutionCapable</key><true/></dict></plist>");
         }
         string archive = Path.Combine(output, bundleName + (rid.StartsWith("linux-") ? "-installer.tar.gz" : "-installer.zip"));
         using (var file = new FileStream(archive, FileMode.CreateNew)) {
@@ -126,7 +132,7 @@ internal static class Program {
     }
     private sealed class ConsoleProgress : IProgress<InstallProgress> { public void Report(InstallProgress value) => Console.WriteLine($"{value.Percent,3}% {value.Phase}: {value.Detail}"); }
     private static void Help() => Console.WriteLine("""
-DivineLabs Installer 0.1.1 — cross-platform, config-driven application installers
+DivineLabs Installer 0.2.0 — cross-platform, config-driven application installers
   divinepack init [--dir DIR]
   divinepack validate [--config installer.json]
   divinepack pack --runtime RID --output application.dlpack [--config installer.json]

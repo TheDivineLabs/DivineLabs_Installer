@@ -14,3 +14,7 @@ Never claim OS acceptance before its native build and smoke check pass. Preserve
 Read the [build commands](README.md#build-and-verify), [config contract](docs/configuration.md) and [roadmap](docs/ROADMAP.md).
 For documentation languages see [translation guidance](docs/i18n/CONTRIBUTING.md).
 The Action wrapper has its own six-runner workflow using published SDKs, without recompiling the application.
+
+Public API and layer boundaries are described in [architecture](docs/architecture.md) and [API](docs/api.md).
+Keep Components independent of Core and OS services. Classic styles must remain window-scoped.
+Packaging changes must retain compilable external consumers for both launcher and Classic packages.

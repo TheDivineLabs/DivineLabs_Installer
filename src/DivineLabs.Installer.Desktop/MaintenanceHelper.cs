@@ -4,39 +4,6 @@ using DivineLabs.Installer.Core;
 using DivineLabs.Installer.Platforms;
 namespace DivineLabs.Installer.Desktop;
 
-public sealed class Session : IDisposable {
-    public ProductConfig Product { get; }
-    public Package? Package { get; }
-    public bool Uninstall { get; }
-    public string Target { get; }
-    public PlatformServices Platform { get; } = new();
-    public string? PackagePath { get; }
-    private Session(ProductConfig product, string? packagePath, string? target, bool uninstall) {
-        Product = product; PackagePath = packagePath; Uninstall = uninstall;
-        if (packagePath != null) Package = new Package(packagePath);
-        Target = target ?? Platform.DefaultDirectory(product);
-    }
-    public static Session Create(string? packagePath, string? target, bool uninstall) {
-        var platform = new PlatformServices();
-        if (uninstall) {
-            if (target == null) throw new ArgumentException("--dir is required when uninstalling.");
-            new Engine(platform).RecoverInterrupted(target);
-            return new((Engine.ReadReceipt(target) ?? throw new IOException("No installation receipt found.")).Product, null, target, true);
-        }
-        if (packagePath == null || !File.Exists(packagePath)) return Preview();
-        using var package = new Package(packagePath); return new(package.Manifest.Product, packagePath, target, false);
-    }
-    public static Session Preview() => new(new() { Id = "org.divinelabs.example", Name = "DivineLabs Installer", Publisher = "DivineLabs", Version = "0.1.0", Language = "en", Description = "Your application. One configuration. Every desktop.", Links = [new("GitHub", "https://github.com/TheDivineLabs/DivineLabs_Installer"), new("Documentation", "https://github.com/TheDivineLabs/DivineLabs_Installer#readme")] }, null, null, false);
-    public byte[]? Asset(string? name) {
-        if (name == null) return null;
-        if (Package != null) return Package.ReadAsset(name);
-        string path = Paths.Inside(Target, Paths.StateDirectory + "/branding/" + name); Paths.NoLinks(path);
-        return File.Exists(path) ? File.ReadAllBytes(path) : null;
-    }
-    public string License => Asset(Product.License) is { } bytes ? Encoding.UTF8.GetString(bytes) : "MIT License\n\nCopyright (c) 2026 DivineLabs\n\nThis installer is free and open-source software.\nhttps://github.com/TheDivineLabs/DivineLabs_Installer";
-    public void Dispose() => Package?.Dispose();
-}
-
 public static class MaintenanceHelper {
     public static string Root => Path.Combine(Path.GetTempPath(), "DivineLabsInstaller");
     public static bool Relocate(string target, bool silent, bool removeData) {

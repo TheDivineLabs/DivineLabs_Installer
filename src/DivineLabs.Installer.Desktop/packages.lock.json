@@ -209,13 +209,27 @@
         "resolved": "0.94.1",
         "contentHash": "11YMr7FnAbL83bQmVxlhbIKHvSLxjO81D12Ej0QMSGXMDTxNA9MTOa4MQxx43nv5el/efuPHwzyrj6a5ha2gug=="
       },
+      "divinelabs.installer.components": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "[12.1.4, )"
+        }
+      },
       "divinelabs.installer.core": {
         "type": "Project"
       },
       "divinelabs.installer.platforms": {
         "type": "Project",
         "dependencies": {
-          "DivineLabs.Installer.Core": "[0.1.0, )"
+          "DivineLabs.Installer.Core": "[0.2.0, )"
+        }
+      },
+      "divinelabs.installer.templates.classic": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia.Themes.Fluent": "[12.1.4, )",
+          "DivineLabs.Installer.Components": "[0.2.0, )",
+          "DivineLabs.Installer.Core": "[0.2.0, )"
         }
       }
     },

@@ -25,7 +25,7 @@ jobs:
           config: installer.json
           runtime: ${{ matrix.runtime }}
           output: installer-output
-          sdk-version: v0.1.1
+          sdk-version: v0.2.0
       - uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.runtime }}

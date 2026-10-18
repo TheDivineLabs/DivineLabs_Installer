@@ -4,7 +4,7 @@
 <p><strong>Ваше приложение. Ваш дизайн. Один конфиг.</strong></p>
 <p>Открытый конструктор установщиков для Windows, macOS и Linux.<br>Avalonia + .NET Native AOT · MIT</p>
 
-[Сайт](https://thedivinelabs.github.io/installer/) · [Скачать SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1) · [Настройки](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Сообщить об ошибке](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
+[Сайт](https://thedivinelabs.github.io/installer/) · [Скачать SDK](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Настройки](docs/configuration.md) · [GitHub Action](docs/github-actions.md) · [Сообщить об ошибке](https://github.com/TheDivineLabs/DivineLabs_Installer/issues/new/choose)
 
 [English](README.md) · **Русский** · [Deutsch](docs/i18n/README.de.md) · [Español](docs/i18n/README.es.md) · [简体中文](docs/i18n/README.zh-CN.md)
 </div>
@@ -16,9 +16,22 @@
 Интерфейс следует дизайну Idle Slayer: шаги, лицензии, параметры, прогресс и удалятор
 в одном стиле. Игровые изображения не включены.
 
+## Выберите способ подключения
+
+| Задача | Что использовать |
+|---|---|
+| Собрать готовый установщик по JSON | CLI + шаблон DivineLabs Classic |
+| Встроить установку в свой лаунчер | Core: публичный `IInstallerEngine` + опционально Platforms |
+| Сделать собственные экраны | Components: шаги, выбор папки, прогресс |
+| Открыть готовый дизайн в своём приложении | Templates.Classic: `ClassicSession` + `ClassicWindow` |
+
+[Архитектура](docs/architecture.md) · [Встраивание и примеры](docs/embedding.md) · [Контракт API](docs/api.md).
+Это четыре отдельные библиотеки `.nupkg` для .NET 10. Они доступны в [выпуске 0.2.0](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0);
+публикация на nuget.org пока не выполнялась. Документация API — на английском.
+
 ## Быстрый старт
 
-Скачайте [SDK 0.1.1 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1)
+Скачайте [SDK 0.2.0 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0)
 для своей ОС и архитектуры. Распакуйте; `runtime/` должна остаться рядом с `divinepack`.
 В PowerShell:
 
@@ -30,7 +43,7 @@
 
 Сначала получите рабочий демо-установщик, затем замените файлы в `application/` и
 отредактируйте конфиг. На Linux/macOS используйте `./divinepack` и соответствующий RID.
-C#, Avalonia и .NET SDK разработчику приложения не нужны.
+При сборке по конфигу C#, Avalonia и .NET SDK не нужны. Для встраивания API используется .NET 10.
 
 | Платформа | Архитектуры | Результат сборки |
 |---|---|---|

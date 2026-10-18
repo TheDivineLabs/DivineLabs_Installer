@@ -1,4 +1,6 @@
 using Avalonia;
+using DivineLabs.Installer.Platforms;
+using DivineLabs.Installer.Templates.Classic;
 using DivineLabs.Installer.Core;
 namespace DivineLabs.Installer.Desktop;
 internal static class Program {
@@ -11,11 +13,15 @@ internal static class Program {
             if (uninstall && target == null) throw new ArgumentException("Uninstall requires --dir.");
             if (uninstall && !helper && MaintenanceHelper.Relocate(target!, silent, args.Contains("--remove-data"))) return 0;
             string package = Value("--package") ?? Path.Combine(AppContext.BaseDirectory, Package.FileName);
-            using var session = Session.Create(package, target, uninstall); App.StartupSession = session;
+            var platform = new PlatformServices(); IInstallerEngine engine = new Engine(platform);
+            using var session = uninstall
+                ? ClassicSession.OpenInstallationAsync(target!, engine, platform).GetAwaiter().GetResult()
+                : File.Exists(package) ? ClassicSession.OpenPackage(package, engine, platform, target, AppContext.BaseDirectory, new())
+                : ClassicSession.Preview(engine, platform);
+            App.StartupSession = session;
             if (silent) {
-                var engine = new Engine(session.Platform);
-                if (uninstall) engine.Uninstall(session.Target, args.Contains("--remove-data"));
-                else { if (session.Package == null) throw new IOException("application.dlpack is missing."); engine.Install(package, session.Target, AppContext.BaseDirectory, new(!args.Contains("--no-integrations"))); }
+                if (uninstall) engine.UninstallAsync(new(session.Target, args.Contains("--remove-data"))).GetAwaiter().GetResult();
+                else { if (session.Package == null) throw new IOException("application.dlpack is missing."); engine.InstallAsync(new(package, session.Target, AppContext.BaseDirectory, new(!args.Contains("--no-integrations")))).GetAwaiter().GetResult(); }
                 return 0;
             }
             return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

@@ -16,7 +16,7 @@ inputs:
     default: installer-output
   sdk-version:
     description: Published native SDK release tag
-    default: v0.1.1
+    default: v0.2.0
 outputs:
   archive:
     description: Absolute path to the generated installer archive

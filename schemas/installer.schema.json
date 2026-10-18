@@ -133,6 +133,12 @@
           }
         }
       }
+    },
+    "template": {
+      "type": "string",
+      "minLength": 1,
+      "default": "divinelabs-classic",
+      "description": "Template identity; must match the prebuilt runtime. Core treats it as metadata."
     }
   }
 }

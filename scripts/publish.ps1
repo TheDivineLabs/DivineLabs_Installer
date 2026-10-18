@@ -25,12 +25,13 @@ foreach ($item in $symbols | Sort-Object { $_.FullName.Length } -Descending) {
  if (Test-Path -LiteralPath $item.FullName) { Remove-Item -LiteralPath $item.FullName -Recurse -Force }
 }
 $entryPoint = if ($Runtime.StartsWith('win-')) { 'DivineLabs.Installer.exe' } else { 'DivineLabs.Installer' }
-@{formatVersion=1;runtime=$Runtime;entryPoint=$entryPoint;nativeAot=$true} | ConvertTo-Json | Set-Content -LiteralPath "$runtimeOutput/runtime.json" -Encoding utf8
+@{formatVersion=1;runtime=$Runtime;entryPoint=$entryPoint;nativeAot=$true;template='divinelabs-classic'} | ConvertTo-Json | Set-Content -LiteralPath "$runtimeOutput/runtime.json" -Encoding utf8
 Copy-Item -LiteralPath "$root/LICENSE","$root/NOTICE.md" -Destination $Output
 Copy-Item -LiteralPath "$root/schemas" -Destination $Output -Recurse
 Copy-Item -LiteralPath "$root/assets/licenses" -Destination $Output -Recurse
 $commit = (& git -C $root rev-parse HEAD 2>$null)
-@{version='0.1.0';runtime=$Runtime;nativeAot=$true;sourceCommit=$commit;builtAt=[DateTime]::UtcNow.ToString('O')} | ConvertTo-Json | Set-Content -LiteralPath "$Output/build.json" -Encoding utf8
+$version = ([xml](Get-Content -LiteralPath "$root/Directory.Build.props" -Raw)).Project.PropertyGroup.Version
+@{version=$version;runtime=$Runtime;nativeAot=$true;sourceCommit=$commit;builtAt=[DateTime]::UtcNow.ToString('O')} | ConvertTo-Json | Set-Content -LiteralPath "$Output/build.json" -Encoding utf8
 Get-ChildItem -LiteralPath $Output -File -Recurse | Sort-Object FullName | ForEach-Object {
  $relative=[IO.Path]::GetRelativePath($Output,$_.FullName).Replace('\','/')
  "$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)  $relative"

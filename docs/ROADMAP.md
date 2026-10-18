@@ -8,6 +8,7 @@ This is a public direction, not a release-date commitment.
 
 - Native AOT SDKs for Windows, macOS and Linux, x64 and ARM64.
 - JSON configuration, schema completion, CLI and GitHub Action.
+- Public asynchronous engine API, independent libraries, reusable controls and DivineLabs Classic template.
 - Setup/update/uninstall, transactions, rollback/recovery and retained user data.
 - English/Russian interface, two themes, custom cover/icon/accent.
 

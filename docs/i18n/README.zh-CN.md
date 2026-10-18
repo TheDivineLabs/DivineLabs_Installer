@@ -6,7 +6,7 @@
 
 面向 Windows、macOS 和 Linux 的原生安装工具，支持 x64 和 ARM64。基于 Avalonia 和 .NET Native AOT，采用 MIT 许可证。
 
-[SDK 0.1.1 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.1.1) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
+[SDK 0.2.0 Preview](https://github.com/TheDivineLabs/DivineLabs_Installer/releases/tag/v0.2.0) · [Website](https://thedivinelabs.github.io/installer/) · [GitHub](https://github.com/TheDivineLabs/DivineLabs_Installer)
 
 ![DivineLabs Installer](../images/welcome.png)
 
@@ -35,3 +35,7 @@
 目前界面支持英语和俄语，以及浅色和深色主题。文档翻译不代表界面支持相同语言。运行前必须解压生成的安装包。本预览版不生成单文件自解压 EXE、MSI、PKG、DEB 或 RPM，不提供自动更新分发或内置签名。符号链接会被拒绝，系统原生图形依赖仍然需要满足。
 
 [MIT](../../LICENSE) · [Third-party notices](../../NOTICE.md)
+
+## 引擎与自定义界面
+
+Core 提供 `IInstallerEngine`，Platforms 提供可选的系统集成，Components 提供可复用的 Avalonia 控件，Templates.Classic 提供完整的默认设计。四个 .NET 10 库以 `.nupkg` 文件分发，目前未发布到 nuget.org。[嵌入指南（英文）](../embedding.md) · [API（英文）](../api.md)。

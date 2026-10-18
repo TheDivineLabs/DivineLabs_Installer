@@ -32,6 +32,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-6 libice6 libsm6 libfontconfig1
       - name: Transaction contract tests
         run: dotnet run --project tests/DivineLabs.Installer.Tests -c Release
+      - name: Build independent embedding hosts
+        run: dotnet build DivineLabs.Installer.slnx -c Release
+      - name: Pack public libraries and build external consumers
+        if: matrix.runtime == 'win-x64'
+        shell: pwsh
+        run: |
+          ./scripts/pack-libraries.ps1 -Output './artifacts/libraries'
+          dotnet build examples/embedded-launcher -c Release -p:UseInstallerPackages=true -p:RestoreAdditionalProjectSources="$PWD/artifacts/libraries"
+          if ($LASTEXITCODE -ne 0) { throw 'Embedded package consumer failed.' }
+          dotnet build examples/classic-host -c Release -p:UseInstallerPackages=true -p:RestoreAdditionalProjectSources="$PWD/artifacts/libraries"
+          if ($LASTEXITCODE -ne 0) { throw 'Classic package consumer failed.' }
       - name: Publish Native AOT SDK
         shell: pwsh
         run: ./scripts/publish.ps1 -Runtime '${{ matrix.runtime }}' -Output '${{ github.workspace }}/artifacts/sdk-${{ matrix.runtime }}'
@@ -54,4 +65,11 @@ jobs:
             artifacts/DivineLabs-Installer-*
             artifacts/smoke-${{ matrix.runtime }}/result.json
             artifacts/screenshots/
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.runtime == 'win-x64'
+        with:
+          name: DivineLabs-Installer-libraries
+          path: artifacts/libraries/*.nupkg
           if-no-files-found: error

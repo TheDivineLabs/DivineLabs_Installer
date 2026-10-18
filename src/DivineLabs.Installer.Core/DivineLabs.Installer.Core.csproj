@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk"/>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsPackable>true</IsPackable><Description>UI-independent Native AOT-compatible installation engine, transactions and public asynchronous API.</Description></PropertyGroup></Project>
