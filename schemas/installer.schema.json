@@ -139,6 +139,15 @@
       "minLength": 1,
       "default": "divinelabs-classic",
       "description": "Template identity; must match the prebuilt runtime. Core treats it as metadata."
+    },
+    "fullRemovalPaths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": [],
+      "description": "Product-owned generated relative files/directories removed only during explicit full removal. May overlap application payload; reserved installer state paths are forbidden."
     }
   }
 }

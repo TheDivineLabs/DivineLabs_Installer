@@ -30,6 +30,8 @@ public sealed record ProductConfig {
     public Dictionary<string, ApplicationSource> Applications { get; set; } = [];
     public ProductLink[] Links { get; set; } = [];
     public string[] DataDirectories { get; set; } = ["data", "logs"];
+    /// <summary>Product-owned generated paths removed only with explicit full removal. Unlike dataDirectories, these may overlap packaged files.</summary>
+    public string[] FullRemovalPaths { get; set; } = [];
 }
 public sealed record PackageFile(string Path, long Length, string Sha256, int UnixMode = 420);
 public sealed record PackageManifest(int FormatVersion, string Runtime, ProductConfig Product, string EntryPoint,

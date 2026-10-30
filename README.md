@@ -166,3 +166,9 @@ Windows renders setup and uninstall pages in both themes/languages without openi
 `Core` exposes the public engine; `Platforms` provides OS integration; `Components` supplies reusable UI;
 `Templates.Classic` provides the complete design; `Desktop` and `Cli` are hosts.
 See [CONTRIBUTING.md](CONTRIBUTING.md), [NOTICE.md](NOTICE.md) and the [roadmap](docs/ROADMAP.md).
+
+### Product-owned generated files
+
+`fullRemovalPaths` declares relative files or directories generated inside the application's private runtime area. They are removed only when the user explicitly selects full removal. These paths may overlap packaged application files, so they do not change the `dataDirectories` update contract. Existing manifests default to an empty list. Never declare a shared folder or the installation root.
+
+For example, `"fullRemovalPaths": ["App/Runtime", "debug.log"]` removes generated runtime logs left outside the package inventory. Normal uninstall retains these generated paths. If full removal fails, the application inventory and receipt are restored so uninstall can be retried; already removed user data is not backed up.

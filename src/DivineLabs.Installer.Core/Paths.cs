@@ -70,17 +70,20 @@ public static partial class Paths {
         if (config.Language is not ("en" or "ru")) throw new InvalidDataException("Supported languages: en, ru.");
         if (!Regex.IsMatch(config.Branding.Accent, "^#[0-9a-fA-F]{6}$")) throw new InvalidDataException("branding.accent must be #RRGGBB.");
         foreach (var link in config.Links) if (string.IsNullOrWhiteSpace(link.Label) || link.Label.Any(char.IsControl) || !Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")) throw new InvalidDataException("Links require labels and HTTP(S) URLs.");
-        foreach (string data in config.DataDirectories) {
+        if (config.DataDirectories is null || config.FullRemovalPaths is null) throw new InvalidDataException("Removal path lists must be arrays.");
+        foreach (string data in config.DataDirectories.Concat(config.FullRemovalPaths)) {
             Relative(data);
             if (data.Split('/')[0].Equals(StateDirectory, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Reserved data directory.");
         }
     }
     public static bool IsData(ProductConfig product, string path) => product.DataDirectories.Any(d =>
         path.Equals(d, StringComparison.OrdinalIgnoreCase) || path.StartsWith(d + "/", StringComparison.OrdinalIgnoreCase));
-    public static void DeleteOwnedTree(string root) {
+    public static void DeleteOwnedTree(string root, bool clearReadOnly = false) {
         NoLinks(root);
         if (!Directory.Exists(root)) return;
         foreach (string item in Package.EnumerateFiles(root)) NoLinks(item);
+        if (clearReadOnly) foreach (string file in Package.EnumerateFiles(root))
+            File.SetAttributes(file, File.GetAttributes(file) & ~FileAttributes.ReadOnly);
         Directory.Delete(root, true);
     }
 }

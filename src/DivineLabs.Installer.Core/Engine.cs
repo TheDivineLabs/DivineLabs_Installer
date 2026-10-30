@@ -122,7 +122,7 @@ public sealed partial class Engine(IPlatformServices platform, string? workRoot 
         var receipt = ReadReceipt(target) ?? throw new IOException("Installation no longer exists.");
         string txn = Paths.Inside(target, Transaction); Paths.NoLinks(txn); Directory.CreateDirectory(txn);
         foreach (var file in receipt.Files) Paths.NoLinks(Paths.Inside(target, file.Path));
-        if (removeData) foreach (string data in receipt.Product.DataDirectories) {
+        if (removeData) foreach (string data in FullRemovalPaths(receipt.Product)) {
             string directory = Paths.Inside(target, data); Paths.NoLinks(directory);
             if (Directory.Exists(directory)) foreach (string file in Package.EnumerateFiles(directory)) Paths.NoLinks(file);
         }
@@ -130,16 +130,19 @@ public sealed partial class Engine(IPlatformServices platform, string? workRoot 
         Write(Path.Combine(txn, "journal.json"), new TransactionJournal(receipt.ProductId, "applying", receipt, items), InstallerJson.Default.TransactionJournal);
         try {
             Apply(target, items, cancel, progress); cancel.ThrowIfCancellationRequested();
+            // Keep the receipt and application backups until requested data removal succeeds.
+            // A locked generated file must leave a retryable installation, not an orphaned folder.
+            if (removeData) foreach (string data in FullRemovalPaths(receipt.Product)) {
+                string path = Paths.Inside(target, data);
+                if (Directory.Exists(path)) Paths.DeleteOwnedTree(path, clearReadOnly: true);
+                else if (File.Exists(path)) { File.SetAttributes(path, File.GetAttributes(path) & ~FileAttributes.ReadOnly); File.Delete(path); }
+            }
             File.Delete(Paths.Inside(target, Paths.ReceiptPath));
             Write(Path.Combine(txn, "journal.json"), new TransactionJournal(receipt.ProductId, "committed", receipt, items), InstallerJson.Default.TransactionJournal);
         } catch { Recover(target, receipt.ProductId); throw; }
         Paths.DeleteOwnedTree(txn);
         var warnings = new List<string>();
         if (receipt.Integrations) TryIntegration(() => platform.Unregister(target, receipt), warnings);
-        if (removeData) foreach (string data in receipt.Product.DataDirectories) {
-            string path = Paths.Inside(target, data);
-            if (Directory.Exists(path)) Paths.DeleteOwnedTree(path); else if (File.Exists(path)) File.Delete(path);
-        }
         bool userContent = Directory.Exists(target) && Directory.EnumerateFileSystemEntries(target).Where(p => Path.GetFileName(p) != Paths.StateDirectory).Any(p => File.Exists(p) || (Directory.Exists(p) && ((File.GetAttributes(p) & FileAttributes.ReparsePoint) != 0 || HasRetainedContent(p))));
         string owner = Paths.Inside(target, OwnerPath);
         if (userContent) Write(owner, new OwnershipRecord(1, receipt.ProductId), InstallerJson.Default.OwnershipRecord);
@@ -152,6 +155,9 @@ public sealed partial class Engine(IPlatformServices platform, string? workRoot 
         }
         progress?.Report(new("complete", receipt.Product.Name, 100)); return new(warnings);
     }
+    private static IEnumerable<string> FullRemovalPaths(ProductConfig product) => product.DataDirectories
+        .Concat(product.FullRemovalPaths).Concat([Paths.RuntimeDirectory, Paths.StateDirectory + "/branding"])
+        .Distinct(StringComparer.OrdinalIgnoreCase);
     private static bool HasRetainedContent(string root) => Directory.EnumerateFileSystemEntries(root).Any(p =>
         (File.GetAttributes(p) & FileAttributes.ReparsePoint) != 0 || File.Exists(p) || (Directory.Exists(p) && HasRetainedContent(p)));
     private static IEnumerable<string> SafeDirectories(string root) {
