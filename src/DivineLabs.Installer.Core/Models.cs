@@ -9,6 +9,7 @@ public sealed record ApplicationSource {
 }
 public sealed record Branding {
     public bool ShowFrameworkBranding { get; set; } = true;
+    public string FooterText { get; set; } = "";
     public string? Icon { get; set; }
     public string? Cover { get; set; }
     public string Accent { get; set; } = "#6658E8";

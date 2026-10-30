@@ -9,6 +9,9 @@ if (args.Length > 0 && args[0] == "--crash-child") {
     new Engine(new PlatformServices()).Install(args[1], args[2], options: new(false), progress: new Callback(p => { if (p.Phase == "install") Environment.Exit(99); }));
     return 9;
 }
+if (args is ["--windows-shortcuts-only"] && OperatingSystem.IsWindows()) {
+    WindowsShortcutChecks.Run(Environment.GetEnvironmentVariable("INSTALLER_TEST_ROOT") ?? Path.GetTempPath()); return 0;
+}
 string work = Path.Combine(Environment.GetEnvironmentVariable("INSTALLER_TEST_ROOT") ?? Path.GetTempPath(), "DivineLabs-tests-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(work); int passed = 0, skipped = 0;
 var engine = new Engine(new PlatformServices(), Path.Combine(work, "locks"));

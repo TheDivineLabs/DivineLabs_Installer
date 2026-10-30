@@ -228,14 +228,19 @@ public sealed class ClassicWindow : Window {
         var panel = new StackPanel { Width = 660, VerticalAlignment = VerticalAlignment.Center, Spacing = 18 };
         var icon = ProductIcon(100); icon.HorizontalAlignment = HorizontalAlignment.Center; panel.Children.Add(icon);
         panel.Children.Add(Center(succeeded ? session.Uninstall ? T("Uninstall complete", "Удаление завершено") : T("You're all set", "Всё готово") : T("Operation stopped", "Операция остановлена"), 36, weight: FontWeight.Bold));
-        panel.Children.Add(Center(error.Length > 0 ? error : session.Uninstall ? T("The application is removed. Your data choices were respected.", "Программа удалена с выбранными настройками сохранения данных.") : T($"{session.Product.Name} is ready to use.", $"{session.Product.Name} готова к работе."), 15, true));
+        if (succeeded) panel.Children.Add(Center(session.Uninstall ? T("The application is removed. Your data choices were respected.", "Программа удалена с выбранными настройками сохранения данных.") : T($"{session.Product.Name} is ready to use.", $"{session.Product.Name} готова к работе."), 15, true));
+        if (error.Length > 0) {
+            var warning = Text((succeeded ? T("Some system integrations need attention: ", "Некоторые системные настройки требуют внимания: ") : "") + error, 14);
+            warning.Foreground = Brush.Parse(succeeded ? "#996116" : "#A32C42");
+            panel.Children.Add(new ScrollViewer { Content = warning, MaxHeight = 160, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto });
+        }
         if (succeeded && !session.Uninstall) { var launch = Button(T("Launch application", "Запустить программу"), () => session.Platform.Launch(target, session.Package!.Manifest.EntryPoint), true); launch.HorizontalAlignment = HorizontalAlignment.Center; panel.Children.Add(launch); }
         panel.Children.Add(Social()); return new Viewbox { Child = panel, Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly };
     }
     private Button? next;
     private Control Footer() {
         var row = Grid("*,Auto,10,Auto,10,Auto"); row.Margin = new(0, 18, 0, 0);
-        row.Children.Add(Text(session.Product.Branding.ShowFrameworkBranding ? T("Built with DivineLabs Installer", "Разработано с DivineLabs Installer") : session.Product.Publisher, 10, true));
+        row.Children.Add(Text(!string.IsNullOrWhiteSpace(session.Product.Branding.FooterText) ? session.Product.Branding.FooterText : session.Product.Branding.ShowFrameworkBranding ? T("Built with DivineLabs Installer", "Разработано с DivineLabs Installer") : session.Product.Publisher, 10, true));
         if (page == 4) row.Children.Add(Place(Button(T("Done", "Готово"), Exit, true), 5));
         else {
             row.Children.Add(Place(Button(T("Cancel", "Отмена"), ConfirmCancel), 1));

@@ -42,6 +42,7 @@ Use [the runnable Hello example](../examples/hello/installer.json) to try the to
 | `executableFiles` | Additional paths relative to `source` requiring Unix executable mode. |
 | `branding.icon`, `branding.cover` | Optional images relative to config; use PNG. Reference cover slot: 330 × 740. |
 | `branding.accent` | Six-digit hex color; default `#6658E8`. |
+| `branding.footerText` | Optional custom attribution in both install and uninstall windows; empty retains the default attribution. |
 | `branding.showFrameworkBranding` | `false` hides the framework logo/attribution in the GUI. Executable identity remains DivineLabs. |
 | `license` | Optional UTF-8 license relative to config. Framework/component notices remain available. |
 | `language` | Initial GUI language: `en` (default) or `ru`; users can switch. |

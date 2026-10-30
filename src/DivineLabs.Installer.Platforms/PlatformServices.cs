@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using DivineLabs.Installer.Core;
 using Microsoft.Win32;
 namespace DivineLabs.Installer.Platforms;
@@ -75,8 +77,7 @@ public sealed class PlatformServices(string? dataHomeOverride = null, string? de
         key.SetValue("QuietUninstallString", $"\"{host}\" --uninstall --silent --dir \"{root}\""); key.SetValue("NoModify", 1); key.SetValue("NoRepair", 1);
         string target = Paths.Inside(root, receipt.EntryPoint);
         foreach (string directory in ShortcutDirectories(receipt)) {
-            Directory.CreateDirectory(directory); string path = Path.Combine(directory, receipt.ProductId + ".lnk"); Paths.NoLinks(path);
-            PowerShell("$s=New-Object -ComObject WScript.Shell;$p=" + Quote(path) + ";$l=$s.CreateShortcut($p);if((Test-Path -LiteralPath $p)-and $l.TargetPath -ne " + Quote(target) + "){throw 'Shortcut belongs to another installation'};$l.TargetPath=" + Quote(target) + ";$l.WorkingDirectory=" + Quote(root) + ";$l.Description=" + Quote(receipt.Product.Name) + ";$l.Save()");
+            WindowsShortcuts.Write(directory, receipt.ProductId, target, root, receipt.Product.Name);
         }
     }
     [SupportedOSPlatform("windows")]
@@ -86,8 +87,7 @@ public sealed class PlatformServices(string? dataHomeOverride = null, string? de
         bool ownKey = string.Equals(key?.GetValue("InstallLocation") as string, root, StringComparison.OrdinalIgnoreCase);
         string target = Paths.Inside(root, receipt.EntryPoint);
         foreach (string directory in ShortcutDirectories(receipt)) {
-            string path = Path.Combine(directory, receipt.ProductId + ".lnk"); Paths.NoLinks(path);
-            if (File.Exists(path)) PowerShell("$s=New-Object -ComObject WScript.Shell;$p=" + Quote(path) + ";if($s.CreateShortcut($p).TargetPath -eq " + Quote(target) + "){Remove-Item -LiteralPath $p -Force}");
+            WindowsShortcuts.Remove(directory, receipt.ProductId, target);
         }
         key?.Dispose(); if (ownKey) Registry.CurrentUser.DeleteSubKeyTree(keyPath, false);
     }
@@ -98,12 +98,30 @@ public sealed class PlatformServices(string? dataHomeOverride = null, string? de
     }
     [SupportedOSPlatform("windows")]
     public static void PowerShell(string code) {
-        var start = new ProcessStartInfo("powershell.exe") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true };
-        start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive"); start.ArgumentList.Add("-EncodedCommand"); start.ArgumentList.Add(Convert.ToBase64String(Encoding.Unicode.GetBytes("$ErrorActionPreference='Stop';" + code)));
+        var start = new ProcessStartInfo("powershell.exe") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true,
+            StandardErrorEncoding = Encoding.UTF8, StandardOutputEncoding = Encoding.UTF8 };
+        // EncodedCommand otherwise emits CLIXML progress/error records to redirected stderr.
+        string wrapped = "$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);try{&{"
+            + code + "}}catch{[Console]::Error.WriteLine($_.Exception.Message);exit 1}";
+        start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive"); start.ArgumentList.Add("-EncodedCommand"); start.ArgumentList.Add(Convert.ToBase64String(Encoding.Unicode.GetBytes(wrapped)));
         using var process = Process.Start(start) ?? throw new IOException("Cannot start Windows shell integration.");
-        string errors = process.StandardError.ReadToEnd(); process.WaitForExit();
-        if (process.ExitCode != 0) throw new IOException("Windows integration failed: " + errors.Trim());
+        var errors = process.StandardError.ReadToEndAsync(); var output = process.StandardOutput.ReadToEndAsync();
+        process.WaitForExit(); Task.WhenAll(errors, output).GetAwaiter().GetResult();
+        if (process.ExitCode != 0) throw new IOException("Windows integration failed: " + ReadShellError(errors.Result));
     }
+    internal static string ReadShellError(string errors) {
+        string message = errors.Trim();
+        if (message.StartsWith("#< CLIXML", StringComparison.Ordinal)) {
+            try {
+                using var reader = XmlReader.Create(new StringReader(message[(message.IndexOf('\n') + 1)..]), new() { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
+                var document = XDocument.Load(reader);
+                message = string.Join(" ", document.Descendants().Where(e => e.Name.LocalName == "S" && (string?)e.Attribute("S") == "Error").Select(e => XmlConvert.DecodeName(e.Value)));
+            } catch (XmlException) { message = "The Windows shell could not complete this operation."; }
+        }
+        message = message.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "The Windows shell could not complete this operation.";
+        return message.Length > 500 ? message[..500] + "…" : message;
+    }
+
     public void Launch(string root, string entryPoint) {
         string path = Paths.Inside(root, entryPoint); Paths.NoLinks(path);
         Process.Start(new ProcessStartInfo(path) { WorkingDirectory = root, UseShellExecute = OperatingSystem.IsWindows() });

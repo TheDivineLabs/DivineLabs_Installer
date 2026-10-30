@@ -10,6 +10,7 @@ using DivineLabs.Installer.Templates.Classic;
 
 string output = Path.GetFullPath(args.Length > 0 ? args[0] : "artifacts/screenshots"); Directory.CreateDirectory(output);
 AppBuilder.Configure<App>().UseSkia().WithInterFont().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+if (args.Length == 4 && args[1] == "--product-config") { ProductBrandingChecks.Render(args[2], args[3], output); return; }
 int count = 0;
 var sentinel = Avalonia.Media.Brush.Parse("#123456"); Application.Current!.Resources["Background"] = sentinel;
 void Render(ClassicSession session, string prefix, int[] pages) {

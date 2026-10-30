@@ -111,6 +111,12 @@
         "showFrameworkBranding": {
           "type": "boolean",
           "default": true
+        },
+        "footerText": {
+          "type": "string",
+          "default": "",
+          "maxLength": 200,
+          "description": "Custom installer/uninstaller footer; empty retains showFrameworkBranding behavior."
         }
       }
     },
