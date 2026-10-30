@@ -18,7 +18,7 @@ public static class MaintenanceHelper {
             if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(destination, File.GetUnixFileMode(file));
         }
         string marker = Path.Combine(work, ".maintenance-owned"); File.WriteAllText(marker, "DivineLabs Installer");
-        var start = new ProcessStartInfo(Path.Combine(work, PlatformServices.HostExecutable)) { UseShellExecute = false, CreateNoWindow = silent };
+        var start = new ProcessStartInfo(Path.Combine(work, PlatformServices.HostExecutable)) { UseShellExecute = false, CreateNoWindow = silent, WorkingDirectory = work };
         foreach (string argument in new[] { "--uninstall", "--dir", target, "--maintenance-helper" }) start.ArgumentList.Add(argument);
         if (silent) start.ArgumentList.Add("--silent"); if (removeData) start.ArgumentList.Add("--remove-data");
         Process.Start(start); return true;

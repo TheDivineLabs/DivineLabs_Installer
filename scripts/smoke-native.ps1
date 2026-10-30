@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Sdk,[string]$Work='')
+﻿param([Parameter(Mandatory)][string]$Sdk,[string]$Work='')
 $ErrorActionPreference='Stop'
 $Sdk=(Resolve-Path -LiteralPath $Sdk).Path
 if(-not $Work){$Work=Join-Path ([IO.Path]::GetTempPath()) ('DivineLabs-native-smoke-'+[Guid]::NewGuid().ToString('N'))}
@@ -9,8 +9,9 @@ $debug=@(Get-ChildItem -LiteralPath $Sdk -Recurse -Force | Where-Object { $_.Ext
 if($debug.Count){throw 'SDK contains unwanted debugging artifacts.'}
 $extension=if($IsWindows){'.exe'}else{''}
 $cli=Join-Path $Sdk "divinepack$extension"
-function Run([string]$Executable,[string[]]$Arguments){
+function Run([string]$Executable,[string[]]$Arguments,[string]$WorkingDirectory){
  $start=[Diagnostics.ProcessStartInfo]::new($Executable)
+ if($WorkingDirectory){$start.WorkingDirectory=$WorkingDirectory}
  $start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
  foreach($argument in $Arguments){$start.ArgumentList.Add($argument)}
  $process=[Diagnostics.Process]::Start($start)
@@ -55,5 +56,12 @@ while((Test-Path -LiteralPath $receiptFile)-and (Get-Date)-lt $deadline){Start-S
 if(Test-Path -LiteralPath $receiptFile){throw 'Installed native uninstaller did not complete.'}
 if(Test-Path -LiteralPath (Join-Path $target $receipt.entryPoint)){throw 'Uninstaller left owned app executable.'}
 if([IO.File]::ReadAllText("$target/data/settings.json") -ne 'retained sentinel'){throw 'Uninstaller lost user settings.'}
-@{success=$true;runtime=$rid;nativeAot=$true;configBuild=$true;configDefaults=$true;installedUninstaller=$true;settingsPreserved=$true;integrations=$false;applicationLaunched=$false} | ConvertTo-Json | Set-Content -LiteralPath "$Work/result.json" -Encoding utf8
+# Reinstall, then remove from an installed host launched with the target as its cwd.
+# The relocated worker must not inherit that cwd and keep an empty application folder locked on Windows.
+Run $gui.FullName @('--silent','--no-integrations','--dir',$target)
+Run $uninstaller @('--uninstall','--silent','--remove-data','--dir',$target) $target
+$deadline=(Get-Date).AddSeconds(30)
+while((Test-Path -LiteralPath $target)-and (Get-Date)-lt $deadline){Start-Sleep -Milliseconds 200}
+if(Test-Path -LiteralPath $target){throw 'Full native uninstaller left the owned installation root when launched from it.'}
+@{success=$true;runtime=$rid;nativeAot=$true;configBuild=$true;configDefaults=$true;installedUninstaller=$true;settingsPreserved=$true;fullRemovalFromInstallWorkingDirectory=$true;ownedRootRemoved=$true;integrations=$false;applicationLaunched=$false} | ConvertTo-Json | Set-Content -LiteralPath "$Work/result.json" -Encoding utf8
 Write-Output "Native smoke passed: $rid; $Work/result.json"
