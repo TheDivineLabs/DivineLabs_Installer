@@ -24,8 +24,9 @@ public sealed class ClassicWindow : Window {
     private Border? overlay;
     private IBrush background = Brushes.White, surface = Brushes.White, line = Brushes.Gray, text = Brushes.Black, muted = Brushes.Gray, white = Brushes.White, accent;
     public int Page => page;
-    public ClassicWindow(ClassicSession session) {
-        this.session = session; desktopShortcut = session.Options.DesktopShortcut; menuShortcut = session.Options.MenuShortcut; language = session.Product.Language; target = session.Target; accent = Brush.Parse(session.Product.Branding.Accent);
+    public ClassicWindow(ClassicSession session) : this(session, null, false) { }
+    public ClassicWindow(ClassicSession session, string? locale, bool darkTheme) {
+        this.session = session; desktopShortcut = session.Options.DesktopShortcut; menuShortcut = session.Options.MenuShortcut; language = locale is "ru" or "en" ? locale : session.Product.Language; dark = darkTheme; target = session.Target; accent = Brush.Parse(session.Product.Branding.Accent);
         Title = session.Product.Name; Width = 1100; Height = 790; MinWidth = 940; MinHeight = 690;
         WindowDecorations = WindowDecorations.None; WindowStartupLocation = WindowStartupLocation.CenterScreen;
         if (Image(session.Product.Branding.Icon) is { } icon) Icon = new WindowIcon(icon);

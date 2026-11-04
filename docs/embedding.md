@@ -109,3 +109,7 @@ The minimal [Classic host project](../examples/classic-host/) compiles this inte
 The full Desktop executable additionally handles relocating the maintenance runtime before deleting itself.
 Publish your .NET host with Native AOT and the appropriate OS compiler when distributing without a .NET runtime.
 Keep MIT/third-party notices from [NOTICE.md](../NOTICE.md) in your application's release process.
+
+An enclosing maintenance host can preserve its current language and theme with
+`new ClassicWindow(session, locale: "ru", darkTheme: true)`. The original single-argument
+constructor remains available; defaults are unchanged. Theme resources remain scoped to the window.
